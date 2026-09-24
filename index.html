@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>IceT Hockey</title>
+<meta name="description" content="IceT team practice plays and hockey IQ games.">
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&display=swap">
+<style>
+  :root{ --bg:#eef3f8; --panel:#ffffff; --ink:#15202b; --muted:#5b6673; --line:#d5dde6; --navy:#0d2a57; --red:#d7263d; --blue:#1f6fd0; --ice:#e9f1f8; }
+  @media (prefers-color-scheme: dark){ :root{ --bg:#0f151b; --panel:#182028; --ink:#eef2f6; --muted:#9aa7b4; --line:#2a3541; --ice:#1a2530; } }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Barlow,"Segoe UI",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.45}
+  a{color:inherit}
+  .hero{background:linear-gradient(160deg,#0d2a57 0%,#123a73 60%,#1f6fd0 140%);color:#fff;position:relative;overflow:hidden}
+  .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:linear-gradient(90deg,var(--red) 0 33%,#fff 33% 34%,var(--blue) 34% 66%,#fff 66% 67%,var(--red) 67%)}
+  .hero .in{max-width:1040px;margin:0 auto;padding:28px 20px 34px;display:flex;align-items:center;gap:22px}
+  .hero canvas{width:120px;height:120px;flex:none;filter:drop-shadow(0 6px 16px rgba(0,0,0,.35))}
+  .hero h1{font-family:"Barlow Condensed",Impact,sans-serif;font-weight:800;font-size:clamp(40px,7vw,64px);line-height:.95;margin:0;letter-spacing:.5px;text-transform:uppercase}
+  .hero p{margin:8px 0 0;font-size:18px;opacity:.9;max-width:52ch}
+  main{max-width:1040px;margin:0 auto;padding:26px 20px 40px}
+  h2{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:24px;text-transform:uppercase;letter-spacing:.5px;margin:6px 0 4px}
+  .sub{color:var(--muted);margin:0 0 14px;font-size:15px}
+  .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-bottom:28px}
+  .card{display:flex;flex-direction:column;gap:8px;background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:16px 16px 14px;text-decoration:none;transition:transform .12s, box-shadow .12s, border-color .12s}
+  .card:hover{transform:translateY(-2px);box-shadow:0 8px 22px rgba(13,42,87,.12);border-color:var(--blue)}
+  .card:focus-visible{outline:3px solid var(--blue);outline-offset:3px}
+  .tag{align-self:flex-start;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:12px;letter-spacing:1px;text-transform:uppercase;padding:2px 8px;border-radius:999px;background:var(--ice);color:var(--blue)}
+  .tag.team{color:var(--red)}
+  .card h3{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:24px;line-height:1.05;margin:0;text-transform:uppercase}
+  .card p{margin:0;color:var(--muted);font-size:15px;flex:1}
+  .go{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:17px;text-transform:uppercase;letter-spacing:.4px;color:var(--red)}
+  .how{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:14px 18px;color:var(--muted);font-size:15px}
+  .how b{color:var(--ink)}
+  footer{max-width:1040px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:13px}
+  @media (max-width:560px){ .hero .in{flex-direction:column;align-items:flex-start;gap:12px} .hero canvas{width:90px;height:90px} }
+  @media (prefers-reduced-motion: reduce){ .card{transition:none} }
+</style>
+</head>
+<body>
+<header class="hero">
+  <div class="in">
+    <canvas id="crest" width="240" height="240" aria-label="IceT crest"></canvas>
+    <div>
+      <h1>IceT Hockey</h1>
+      <p>Practice plays and hockey-IQ games for the team. Pick a play, watch it, then play your position.</p>
+    </div>
+  </div>
+</header>
+
+<main>
+  <h2>Team plays</h2>
+  <p class="sub">From Coach's practice plans. Pick your position (C, LW, RW, LD or RD) and get graded at every step.</p>
+  <div class="grid">
+    <a class="card" href="faceoff/">
+      <span class="tag team">D-zone</span>
+      <h3>D-Zone Faceoff Win</h3>
+      <p>Win it away from the net: to the corner or straight to LW. Rim to weak side, strong-side exit, loose puck.</p>
+      <span class="go">Open →</span>
+    </a>
+    <a class="card" href="puck-retrieval/">
+      <span class="tag team">Breakout · Defense</span>
+      <h3>Puck Retrieval &amp; Shot Suppression</h3>
+      <p>D retrieves, C swings low, off the boards to the middle. Then protect the house and get sticks in the shooting lanes.</p>
+      <span class="go">Open →</span>
+    </a>
+  </div>
+
+  <h2>Hockey IQ games</h2>
+  <p class="sub">Positioning practice for forwards: F1, F2, F3, backchecking and reading the play.</p>
+  <div class="grid">
+    <a class="card" href="whos-f1/">
+      <span class="tag">Game</span>
+      <h3>Who's F1?</h3>
+      <p>The puck shows up. Are you F1, F2 or F3? Skate to the right spot and click to lock it in. Watch out for steals.</p>
+      <span class="go">Play →</span>
+    </a>
+    <a class="card" href="scrimmage/">
+      <span class="tag">Game</span>
+      <h3>Center Scrimmage</h3>
+      <p>A live 5-on-5 game. Pass, shoot, battle, backcheck. Coach points for being in the right place, with a letter grade.</p>
+      <span class="go">Play →</span>
+    </a>
+    <a class="card" href="playbook/">
+      <span class="tag">Watch</span>
+      <h3>Center Playbook</h3>
+      <p>Animated diagrams: F1/F2/F3 in both ends, faceoffs, and the backcheck lane. Step through one move at a time.</p>
+      <span class="go">Watch →</span>
+    </a>
+  </div>
+
+  <div class="how">
+    <b>How to play:</b> on a laptop, move the mouse to skate. On a phone or tablet, turn it sideways and tap the ice where you want to go. Use <b>Pause</b> any time to talk it through, and slow the speed down while learning.
+  </div>
+</main>
+<footer>IceT · Nothing is collected; scores stay on your own device.</footer>
+
+<script>
+(function(){
+  const cv=document.getElementById('crest'), ctx=cv.getContext('2d'), u=cv.width/30;
+  ctx.translate(cv.width/2,cv.height/2);
+  const g=ctx.createRadialGradient(-3*u,-4*u,1*u,0,0,13.5*u); g.addColorStop(0,'#ffffff'); g.addColorStop(1,'#cfe0f3');
+  ctx.beginPath(); ctx.arc(0,0,13.5*u,0,7); ctx.fillStyle=g; ctx.fill(); ctx.lineWidth=1.3*u; ctx.strokeStyle='#0d2a57'; ctx.stroke();
+  ctx.beginPath(); ctx.arc(0,0,12*u,0,7); ctx.lineWidth=.45*u; ctx.strokeStyle='#d7263d'; ctx.stroke();
+  const stick=a=>{ ctx.save(); ctx.rotate(a); ctx.fillStyle='#0d2a57'; ctx.fillRect(-.55*u,-10.5*u,1.1*u,17.5*u);
+    ctx.beginPath(); ctx.moveTo(.55*u,6.5*u); ctx.lineTo(-3.6*u,6.9*u); ctx.quadraticCurveTo(-4.6*u,7.3*u,-4.2*u,8.3*u); ctx.lineTo(.8*u,8.1*u); ctx.closePath(); ctx.fill();
+    ctx.fillStyle='#d7263d'; ctx.fillRect(-.55*u,-10.5*u,1.1*u,2.2*u); ctx.restore(); };
+  stick(-.62); ctx.save(); ctx.scale(-1,1); stick(-.62); ctx.restore();
+  const star=(x,y,r)=>{ ctx.beginPath(); for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r*.45:r; ctx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr); } ctx.closePath(); ctx.fillStyle='#d7263d'; ctx.fill(); };
+  star(-8.3*u,-6.2*u,1.3*u); star(8.3*u,-6.2*u,1.3*u); star(0,-9.4*u,1.5*u);
+  const draw=()=>{ ctx.save(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.font=`italic 800 ${10.5*u}px "Barlow Condensed", Impact, sans-serif`;
+    const tg=ctx.createLinearGradient(0,-4*u,0,4*u); tg.addColorStop(0,'#2f86ea'); tg.addColorStop(1,'#0d2a57'); ctx.lineJoin='round';
+    ctx.lineWidth=2.4*u; ctx.strokeStyle='#fff'; ctx.strokeText('IceT',0,.4*u); ctx.lineWidth=.9*u; ctx.strokeStyle='#d7263d'; ctx.strokeText('IceT',0,.4*u); ctx.fillStyle=tg; ctx.fillText('IceT',0,.4*u);
+    ctx.beginPath(); ctx.moveTo(-8*u,6*u); ctx.quadraticCurveTo(0,9.2*u,8*u,5.2*u); ctx.quadraticCurveTo(0,7.6*u,-8*u,6*u); ctx.fillStyle='#d7263d'; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0,9.6*u,2.2*u,.9*u,0,0,7); ctx.fillStyle='#15202b'; ctx.fill(); ctx.restore(); };
+  (document.fonts && document.fonts.ready ? document.fonts.ready : Promise.resolve()).then(draw);
+})();
+</script>
+</body>
+</html>

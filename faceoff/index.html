@@ -1,0 +1,454 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>D-Zone Faceoff Win</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&display=swap">
+<style>
+  :root{
+    --bg:#f2f5f8; --panel:#ffffff; --ink:#15202b; --muted:#5b6673; --line:#d5dde6; --chip:#e6ebf1;
+    --accent:#d7263d; --good:#1a9e5c; --bad:#d7263d; --blue:#1f6fd0;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0f151b; --panel:#182028; --ink:#eef2f6; --muted:#9aa7b4; --line:#2a3541; --chip:#232d38; } }
+  :root[data-theme="dark"]{ --bg:#0f151b; --panel:#182028; --ink:#eef2f6; --muted:#9aa7b4; --line:#2a3541; --chip:#232d38; }
+  *{box-sizing:border-box}
+  html,body{height:100%}
+  body{margin:0;overflow:hidden;background:var(--bg);color:var(--ink);font-family:Barlow,"Segoe UI",Helvetica,Arial,sans-serif;font-size:15px;line-height:1.35;-webkit-user-select:none;user-select:none}
+  /* one screen: rink on the left, everything else in a panel on the right */
+  .app{height:100vh;height:100dvh;display:grid;grid-template-columns:minmax(0,1fr) clamp(260px,26vw,340px);grid-template-areas:"stage panel";gap:10px;padding:10px}
+  .stage{grid-area:stage;position:relative;min-width:0;min-height:0;display:flex;align-items:center;justify-content:center;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;touch-action:none}
+  .stage.playing{cursor:crosshair}
+  canvas{display:block}
+  .banner{position:absolute;left:0;right:0;top:0;padding:8px 14px;text-align:center;pointer-events:none;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:clamp(20px,2.6vw,32px);text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);background:linear-gradient(rgba(21,32,43,.55),rgba(21,32,43,0));opacity:0;transition:opacity .15s}
+  .banner.show{opacity:1} .banner.good{color:#9df0c0} .banner.bad{color:#ffb3bd}
+  .panel{grid-area:panel;min-height:0;overflow-y:auto;display:flex;flex-direction:column;gap:10px;padding-right:2px}
+  h1{font-family:"Barlow Condensed",Impact,"Arial Narrow",sans-serif;font-weight:800;font-size:28px;letter-spacing:.4px;margin:0;line-height:1;text-transform:uppercase}
+  .hint{margin:3px 0 0;color:var(--muted);font-size:13px}
+  .k{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:12px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);margin-bottom:4px}
+  .chips{display:flex;gap:5px;flex-wrap:wrap}
+  .chip{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:15px;letter-spacing:.3px;text-transform:uppercase;border:0;border-radius:999px;padding:5px 11px;background:var(--chip);color:var(--ink);cursor:pointer}
+  .chip[aria-pressed="true"]{background:var(--ink);color:var(--panel)}
+  .chip.pos{min-width:44px}
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+  .actions .row{grid-column:1/-1;display:grid;grid-template-columns:2fr 1fr 1fr;gap:6px}
+  .btn{font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:17px;letter-spacing:.3px;text-transform:uppercase;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:7px 10px;cursor:pointer}
+  .btn.big{font-size:20px;padding:9px 10px}
+  .btn.primary{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .btn.dark{background:var(--ink);color:var(--panel);border-color:var(--ink)}
+  .btn:disabled{opacity:.4;cursor:default}
+  .btn:focus-visible,.chip:focus-visible,input:focus-visible,summary:focus-visible{outline:3px solid var(--blue);outline-offset:2px}
+  .cap{background:var(--panel);border:1px solid var(--line);border-radius:10px;padding:8px 10px}
+  .cap .step{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);font-variant-numeric:tabular-nums}
+  .cap p{margin:2px 0 0;font-size:16px;font-weight:600;line-height:1.3}
+  .cap .job{margin-top:5px;font-size:13.5px;color:var(--muted)}
+  .cap .job b{color:var(--ink)}
+  .settings{display:flex;flex-wrap:wrap;gap:6px 14px;align-items:center;color:var(--muted);font-size:14px}
+  .ctl{display:flex;align-items:center;gap:6px}
+  .ctl input[type=checkbox]{width:17px;height:17px}
+  .ctl input[type=range]{width:100px}
+  .results{display:grid;grid-template-columns:auto 1fr;gap:10px;align-items:start;border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--panel)}
+  .results[hidden]{display:none}
+  .grade{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:46px;line-height:1;text-align:center;min-width:48px}
+  .grade small{display:block;font-size:12px;letter-spacing:1px;color:var(--muted);font-weight:600}
+  .results ul{list-style:none;margin:0;padding:0;display:grid;gap:3px;font-size:13px}
+  .results li b{font-family:"Barlow Condensed",sans-serif;font-size:15px;letter-spacing:.3px}
+  .results .ok{color:var(--good)} .results .no{color:var(--bad)}
+  .results .sum{margin-top:4px;color:var(--muted);font-size:12.5px}
+  .clip{display:flex;align-items:center;gap:10px;border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:7px 10px}
+  .clip[hidden]{display:none}
+  .clip .thumb{width:84px;aspect-ratio:16/9;border-radius:6px;background:#000 center/cover no-repeat;position:relative;flex:none;border:0;padding:0;cursor:pointer}
+  .clip .thumb::after{content:"▶";position:absolute;inset:0;display:flex;align-items:center;justify-content:center;color:#fff;font-size:18px;text-shadow:0 1px 3px rgba(0,0,0,.7)}
+  .clip .t{font-size:13px;line-height:1.25;color:var(--muted)} .clip .t b{display:block;color:var(--ink);font-family:"Barlow Condensed",sans-serif;font-size:15px;text-transform:uppercase;letter-spacing:.3px}
+  .clip a{color:var(--blue)}
+  .video{position:absolute;inset:0;background:rgba(10,15,20,.88);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;padding:12px;z-index:5}
+  .video[hidden]{display:none}
+  .video iframe{width:min(100%,calc((100% - 60px)*16/9));aspect-ratio:16/9;max-height:calc(100% - 50px);border:0;border-radius:8px;background:#000}
+  .video .bar{display:flex;gap:10px;align-items:center;color:#fff;font-size:14px}
+  .video .bar a{color:#9fc6ff}
+  details.rules{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:6px 10px;font-size:13px;color:var(--muted)}
+  details.rules summary{cursor:pointer;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:16px;text-transform:uppercase;letter-spacing:.4px;color:var(--ink)}
+  details.rules ul{margin:6px 0 2px;padding-left:18px;display:grid;gap:4px}
+  details.rules b{color:var(--ink)}
+  /* phones and narrow windows held upright: rink on top, panel underneath */
+  @media (max-width:760px) and (orientation:portrait){
+    .app{grid-template-columns:1fr;grid-template-rows:auto minmax(0,1fr);grid-template-areas:"stage" "panel";gap:8px;padding:8px}
+    .stage{aspect-ratio:1040/745}
+    h1{font-size:22px} .hint{display:none}
+    .btn.big{font-size:18px;padding:8px}
+  }
+  /* phone held sideways: small panel on the right */
+  @media (orientation:landscape) and (max-height:520px){
+    .app{grid-template-columns:minmax(0,1fr) 210px;gap:6px;padding:6px}
+    h1{font-size:18px} .hint{display:none}
+    .chip{font-size:13px;padding:3px 8px} .chip.pos{min-width:34px}
+    .btn{font-size:14px;padding:5px 6px} .btn.big{font-size:16px;padding:6px}
+    .cap p{font-size:13px} .cap .job{font-size:12px}
+    .panel{gap:6px}
+  }
+
+  .home{display:inline-block;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;letter-spacing:.8px;text-transform:uppercase;color:#1f6fd0;text-decoration:none;margin-bottom:4px}
+  .home:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+
+<div class="app">
+  <div class="stage" id="stage">
+    <canvas id="c" width="1040" height="745"></canvas>
+    <div class="banner" id="banner"></div>
+    <div class="video" id="videoOv" hidden>
+      <iframe id="videoFrame" title="Real game clip" allow="autoplay; encrypted-media; picture-in-picture" allowfullscreen></iframe>
+      <div class="bar"><span id="videoTitle"></span> · <a id="videoLink" href="#" target="_blank" rel="noopener">Open on YouTube</a> <button class="btn" id="videoClose" style="padding:4px 10px;font-size:15px">Close ✕</button></div>
+    </div>
+  </div>
+
+  <aside class="panel">
+    <div>
+      <a class="home" href="../">← IceT home</a>
+      <h1>D-Zone Faceoff Win</h1>
+      <p class="hint">Mouse to skate, or tap the ice on a phone. Our net is on the left.</p>
+    </div>
+    <div><div class="k">You play</div><div class="chips" id="posChips"></div></div>
+    <div><div class="k">The play</div><div class="chips" id="varChips"></div></div>
+
+    <div class="actions">
+      <button class="btn dark big" id="watchBtn">▶ Watch</button>
+      <button class="btn primary big" id="playBtn">Play it</button>
+      <div class="row">
+        <button class="btn" id="pauseBtn" disabled>❚❚ Pause</button>
+        <button class="btn" id="prevBtn" aria-label="Previous step">◀</button>
+        <button class="btn" id="nextBtn" aria-label="Next step">▶</button>
+      </div>
+    </div>
+
+    <div class="cap">
+      <div class="step" id="step">Set</div>
+      <p id="caption"></p>
+      <div class="job" id="job"></div>
+    </div>
+
+    <div class="clip" id="clip" hidden>
+      <button class="thumb" id="clipThumb" aria-label="Play real game clip"></button>
+      <div class="t"><b>Real game clip</b><span id="clipTitle"></span><br><a id="clipLink" href="#" target="_blank" rel="noopener">Open on YouTube</a></div>
+    </div>
+
+    <div class="results" id="results" hidden>
+      <div class="grade" id="grade">A<small id="gradeSub">4 of 4</small></div>
+      <div><ul id="resList"></ul><div class="sum" id="resSum"></div></div>
+    </div>
+
+    <div class="settings">
+      <label class="ctl"><input type="checkbox" id="spots"> Show my spots</label>
+      <label class="ctl">Speed <input type="range" id="speed" min="0.25" max="1.2" step="0.05" value="0.6"> <b id="speedV" style="font-variant-numeric:tabular-nums">0.6×</b></label>
+    </div>
+
+    <details class="rules">
+      <summary>Coach's rules</summary>
+      <ul>
+        <li><b>Win it away from the net.</b> Best draw on the strong side goes toward the corner or straight to LW, as far from our net as possible.</li>
+        <li><b>LD hugs the wall on exits.</b> As we move up ice, LD stays close to the boards in case the puck comes back.</li>
+        <li><b>Move on the drop.</b> If you wait to react, you'll be too late.</li>
+        <li><b>Keep it out of the house.</b> Nobody open in front of our net. RD stays there until we have it.</li>
+        <li><b>Don't leave early.</b> Don't leave the zone without possession.</li>
+        <li><b>Don't panic.</b> Tie-up, find the wall, move it up.</li>
+      </ul>
+    </details>
+  </aside>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  const $=id=>document.getElementById(id);
+  const cv=$('c'), ctx=cv.getContext('2d');
+  // rink units ≈ feet. Our net at x=11. We show our zone plus the neutral zone.
+  const VX=134, PADX=2, S=cv.width/VX, ox=PADX*S, oy=5*S;
+  const X=x=>ox+x*S, Y=y=>oy+y*S;
+  const R=9;           // checkpoint radius (ft)
+  const SPD=40;        // how fast you skate (ft per game-second)
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const dist=(a,b)=>Math.hypot(a[0]-b[0],a[1]-b[1]);
+  const ease=t=>t<.5?2*t*t:-1+(4-2*t)*t;
+
+  // ---------- the play ----------
+  const OURS=['C','LW','RW','LD','RD'], THEM=['OC','OLW','ORW','OD1','OD2'];
+  const SETUP={ G:[13,42.5], C:[27.5,22], OC:[34.5,22], LW:[29,6.5], ORW:[35,6.5], LD:[18,27],
+    RD:[29,38], OLW:[35,38], RW:[29,47], OD1:[70,14], OD2:[70,52], puck:[31,22] }; // puck on the dot
+  const VARS=[
+    { id:'rim', name:'Rim to weak side',
+      caps:['Set. The win goes toward the corner, as far from our net as possible. LD gets there first.',
+            'Drop! C wins it to the corner and ties up their center. LD grabs it. RD takes the man in front. RW heads for the weak-side wall.',
+            'LD goes behind the net and rims it around the boards to the weak side.',
+            'RW takes the rim on the wall. C lets go and swings up the middle on the weak side.',
+            'RW hits C in the middle. LD follows up along the wall. Out of the zone with the puck!'],
+      jobs:{ C:'Win it toward the corner, tie up their center, then go up the middle on the weak side for the pass.',
+             LW:'Get off the wall and head up ice, high on the strong side.',
+             RW:'Get to the weak-side wall to take LD\'s rim, then move it to C.',
+             LD:'Get to the corner for the draw, go behind the net and rim it to the weak side, then follow up close to the wall.',
+             RD:'Take their LW in front of our net. Stay until we have the puck, then follow the play.' },
+      kf:[
+        {t:0.9, p:{puck:[13,11],LD:[15,14],C:[29.5,22.5],OC:[34.5,22],RD:[19,40],OLW:[23,40],RW:[30,58],LW:[36,9],ORW:[26,14],OD1:[68,14],OD2:[68,50]}},
+        {t:2.2, via:{puck:[[9,20],[5,30],[3,38]], LD:[[9,22]]}, p:{LD:[6,30],puck:[2,45],RW:[26,73],C:[42,46],OC:[34,30],LW:[52,10],ORW:[12,24],RD:[19,41],OLW:[23,42],OD2:[62,58],OD1:[66,20]}},
+        {t:3.4, via:{puck:[[2,55],[6,65],[14,73]], LD:[[3,40],[3,49]], ORW:[[6,33],[4,41]]}, p:{puck:[24,76],RW:[25,73],C:[54,56],OC:[40,48],LW:[64,24],LD:[10,60],ORW:[10,48],RD:[24,46],OLW:[28,50],OD2:[54,66],OD1:[64,30]}},
+        {t:4.6, p:{puck:[85,52],C:[82,52],RW:[58,76],LW:[92,28],LD:[34,72],RD:[40,48],OC:[56,54],OLW:[44,58],ORW:[24,56],OD2:[96,60],OD1:[100,34]}}
+      ]},
+    { id:'strong', name:'Strong-side exit', clip:{id:'6zgq-OV07pQ', title:'Kraken @ Jets, Feb 17 2022: D to the winger on the strong-side wall and out.'},
+      caps:['Set. Best win on this side: straight to LW on the wall, as far from our net as possible.',
+            'Drop! C wins it right to LW on the wall and ties up their center. LD slides over to the wall behind LW. RW flashes up the lane.',
+            'LW protects it and moves up the wall. C heads up ice on the strong side. LD stays close to the wall in case the puck comes back.',
+            'LW moves it to C in the middle. LD keeps following up the wall.',
+            'C carries it out on the strong side. Zone exit!'],
+      jobs:{ C:'Win it straight to LW on the wall, tie up their center, then head up ice on the strong side for LW\'s pass.',
+             LW:'Drop down the wall and take the draw. Protect it, move up the wall, and hit C in the middle.',
+             RW:'Flash up the lane in front of C and get wide up ice.',
+             LD:'Slide to the wall behind LW. As we move up ice, stay close to the wall in case the puck comes back.',
+             RD:'Take their LW in front of our net until we have the puck, then follow up.' },
+      kf:[
+        {t:0.9, p:{puck:[26,6],LW:[24,5],LD:[16,13],C:[29.5,22.5],OC:[34.5,22],ORW:[31,10],RD:[19,40],OLW:[23,40],RW:[40,42]}},
+        {t:2.0, p:{puck:[38,6],LW:[36,6],LD:[22,8],C:[46,18],OC:[36,24],RW:[58,40],ORW:[30,11],OD1:[58,8],RD:[19,41],OLW:[23,42]}},
+        {t:3.2, p:{puck:[59,22],C:[57,22],LW:[46,6],LD:[34,8],RW:[72,42],RD:[26,40],OD1:[54,9],OC:[44,26],ORW:[36,13],OLW:[30,44],OD2:[70,48]}},
+        {t:4.4, p:{puck:[85,26],C:[82,26],LW:[68,8],LD:[52,10],RW:[92,46],RD:[46,44],OD1:[72,12],OD2:[92,44],OC:[60,30],ORW:[46,16],OLW:[44,48]}}
+      ]},
+    { id:'loose', name:'Loose puck',
+      caps:['Set. The goal is to win it away from our net: toward the corner or right to LW.',
+            'Drop! The puck isn\'t fully won. C ties up their center. RW flashes in behind C to grab it.',
+            'RW moves it to LW on the strong-side wall. C lets go and heads up the middle. LD slides to the wall.',
+            'LW chips it to C in the middle. LD follows up close to the wall.',
+            'C carries it out of the zone!'],
+      jobs:{ C:'Tie up their center so he can\'t get the loose puck, then go up the middle.',
+             LW:'Get up the strong-side wall and be open for RW\'s pass, then chip it to C.',
+             RW:'Flash in behind C, grab the loose puck, and move it to LW.',
+             LD:'Stay ready behind the draw in case it comes to you, then follow up close to the wall.',
+             RD:'Take their LW in front of our net until we have the puck.' },
+      kf:[
+        {t:0.9, p:{puck:[24,25],C:[29.5,22.5],OC:[34.5,22],RW:[25,28],LD:[17,24],RD:[19,40],OLW:[23,40],LW:[38,6],ORW:[30,12]}},
+        {t:1.9, p:{puck:[41,6],LW:[40,6],RW:[28,34],C:[46,26],OC:[36,26],ORW:[28,20],LD:[22,14],RD:[19,41],OLW:[24,42],OD1:[62,10]}},
+        {t:3.0, p:{puck:[64,30],C:[62,30],LW:[54,7],RW:[50,50],LD:[36,11],RD:[26,42],OD1:[58,12],OC:[46,30],ORW:[38,16],OLW:[32,46],OD2:[70,48]}},
+        {t:4.2, p:{puck:[86,32],C:[84,32],RW:[76,56],LW:[74,10],LD:[54,12],RD:[46,46],OD1:[72,16],OD2:[92,46],OC:[64,34],ORW:[52,18],OLW:[48,50]}}
+      ]}
+  ];
+  VARS.forEach(v=>{ const f=[{t:0,p:{...SETUP}}]; v.kf.forEach(k=>{ f.push({t:k.t,via:k.via||{},p:{...f[f.length-1].p,...k.p}}); }); v.frames=f; });
+
+  function along(pts,e){ // point at fraction e of a polyline's length
+    const L=[0]; for(let i=1;i<pts.length;i++) L.push(L[i-1]+dist(pts[i-1],pts[i]));
+    const d=e*L[L.length-1]; let i=1; while(i<pts.length-1 && L[i]<d) i++;
+    const seg=(L[i]-L[i-1])||1, u=(d-L[i-1])/seg; return [pts[i-1][0]+(pts[i][0]-pts[i-1][0])*u, pts[i-1][1]+(pts[i][1]-pts[i-1][1])*u];
+  }
+  function posAt(v,t){
+    const f=v.frames; if(t<=0) return f[0].p; if(t>=f[f.length-1].t) return f[f.length-1].p;
+    let i=0; while(t>f[i+1].t) i++;
+    const a=f[i], b=f[i+1], e=ease((t-a.t)/(b.t-a.t)), out={};
+    for(const k in b.p){ const pa=a.p[k], pb=b.p[k]; const via=b.via&&b.via[k];
+      out[k]= via ? along([pa,...via,pb],e) : [pa[0]+(pb[0]-pa[0])*e, pa[1]+(pb[1]-pa[1])*e]; }
+    return out;
+  }
+
+
+  // ---------- state ----------
+  let sel='C'; try{ const s=localStorage.getItem('dzfo-pos'); if(OURS.includes(s)) sel=s; }catch(e){}
+  let varSel='rim';
+  const St={ mode:'idle', paused:false, v:VARS[0], step:0, hold:0, seg:0, t:0, you:null, trail:[], checks:[], mouse:null, countdown:0, plays:0, pts:0 };
+
+  // ---------- UI ----------
+  const posChips=$('posChips'), varChips=$('varChips');
+  OURS.forEach(p=>{ const b=document.createElement('button'); b.className='chip pos'; b.textContent=p; b.setAttribute('aria-pressed',p===sel); b.onclick=()=>{ sel=p; try{localStorage.setItem('dzfo-pos',p);}catch(e){} [...posChips.children].forEach(c=>c.setAttribute('aria-pressed',c.textContent===p)); if(St.mode==='play') stopAll(); refreshCaption(); }; posChips.appendChild(b); });
+  [...VARS.map(v=>[v.id,v.name]),['random','Surprise me']].forEach(([id,name])=>{ const b=document.createElement('button'); b.className='chip'; b.textContent=name; b.dataset.id=id; b.setAttribute('aria-pressed',id===varSel); b.onclick=()=>{ varSel=id; [...varChips.children].forEach(c=>c.setAttribute('aria-pressed',c.dataset.id===id)); if(id!=='random'){ St.v=VARS.find(v=>v.id===id); } if(St.mode!=='idle') stopAll(); St.step=0; refreshCaption(); }; varChips.appendChild(b); });
+  const speed=()=>parseFloat($('speed').value);
+  $('speed').addEventListener('input',()=>{ $('speedV').textContent=speed().toFixed(2).replace(/0$/,'')+'×'; });
+
+  const banner=$('banner'); let sayT=0;
+  function say(t,cls,secs){ banner.textContent=t; banner.className='banner show '+(cls||''); sayT=secs||1.2; }
+  function refreshClip(){
+    const v=(varSel==='random'&&St.mode!=='play')?null:St.v; const c=v&&v.clip;
+    $('clip').hidden=!c; if(!c) return;
+    $('clipThumb').style.backgroundImage=`url(https://i.ytimg.com/vi/${c.id}/mqdefault.jpg)`;
+    $('clipTitle').textContent=c.title; $('clipLink').href=`https://www.youtube.com/watch?v=${c.id}`;
+  }
+  function openClip(){
+    const c=St.v&&St.v.clip; if(!c) return;
+    if(St.mode==='watch'||St.mode==='play'){ St.paused=true; $('pauseBtn').textContent='▶ Resume'; }
+    $('videoFrame').src=`https://www.youtube-nocookie.com/embed/${c.id}?autoplay=1&rel=0&playsinline=1`;
+    $('videoTitle').textContent=c.title; $('videoLink').href=`https://www.youtube.com/watch?v=${c.id}`;
+    $('videoOv').hidden=false;
+  }
+  function closeClip(){ $('videoOv').hidden=true; $('videoFrame').src='about:blank'; }
+  function refreshCaption(){ refreshClip();
+    const v=St.v; const i=clamp(St.step,0,4);
+    $('step').textContent = St.mode==='play' ? 'Playing' : (i===0?'Set':`Step ${i} of 4`);
+    $('caption').textContent = St.mode==='play' ? (St.countdown>0?'Get set… move the moment the puck drops.':'Go! Be in the right spot at each step.') : v.caps[i];
+    $('job').innerHTML = `<b>Your job (${sel}):</b> ${varSel==='random'&&St.mode==='play'?'read the play — which option is it?':v.jobs[sel]}`;
+  }
+  function pickVar(){ if(varSel==='random'){ St.v=VARS[Math.floor(Math.random()*VARS.length)]; } else St.v=VARS.find(v=>v.id===varSel); }
+
+  function stopAll(){ St.mode='idle'; St.paused=false; $('pauseBtn').disabled=true; $('pauseBtn').textContent='❚❚ Pause'; $('stage').classList.remove('playing'); refreshCaption(); }
+
+  // watch mode: hold on each step, then animate to the next
+  const HOLD=1.6;
+  function startWatch(){ showRink(); pickVar(); St.mode='watch'; St.step=0; St.hold=HOLD; St.seg=0; St.paused=false; $('results').hidden=true; $('pauseBtn').disabled=false; $('pauseBtn').textContent='❚❚ Pause'; refreshCaption(); }
+  function showRink(){}
+  function fitRink(){ const st=$('stage'), r=st.getBoundingClientRect(); const k=Math.min((r.width-4)/cv.width,(r.height-4)/cv.height); if(k>0){ cv.style.width=Math.floor(cv.width*k)+'px'; cv.style.height=Math.floor(cv.height*k)+'px'; } }
+  try{ new ResizeObserver(fitRink).observe($('stage')); }catch(e){ window.addEventListener('resize',fitRink); }
+  fitRink();
+  function startPlay(){ showRink(); pickVar(); St.mode='play'; St.step=0; St.t=0; St.countdown=1.3; St.you=[...SETUP[sel]]; St.mouse=null; St.trail=[]; St.checks=[]; St.paused=false; $('results').hidden=true; $('pauseBtn').disabled=false; $('pauseBtn').textContent='❚❚ Pause'; $('stage').classList.add('playing'); say('GET SET…','',1.3); refreshCaption(); }
+
+  function finishPlay(){
+    St.mode='review'; $('pauseBtn').disabled=true; $('stage').classList.remove('playing'); St.step=4;
+    const hits=St.checks.filter(c=>c.ok).length; St.plays++; St.pts+=hits;
+    const letter=['E','D','C','B','A'][hits];
+    $('grade').innerHTML=`${letter}<small>${hits} of 4</small>`;
+    $('grade').style.color = hits>=3?'var(--good)':hits<=1?'var(--bad)':'var(--ink)';
+    const L=$('resList'); L.innerHTML='';
+    St.checks.forEach((c,i)=>{ const li=document.createElement('li'); li.innerHTML = c.ok ? `<b class="ok">✓ Step ${i+1}</b> — right spot.` : `<b class="no">✗ Step ${i+1}</b> — ${Math.round(c.d)} ft off. ${St.v.caps[i+1]}`; L.appendChild(li); });
+    const pct=Math.round(100*St.pts/(St.plays*4));
+    $('resSum').innerHTML=`Play: <b>${St.v.name}</b> · You were <b>${sel}</b>. ${St.v.jobs[sel]}<br>This session: ${St.plays} play${St.plays>1?'s':''}, right spot ${pct}% of the time. The green dashed path on the ice is where you should have skated.`;
+    $('results').hidden=false;
+    say(hits===4?'PERFECT!':hits>=3?'NICE READ!':'WATCH THE GREEN PATH', hits>=3?'good':'bad', 2);
+    $('caption').textContent='Review: green = where you should have been, blue = where you went.';
+    $('step').textContent='Review';
+  }
+
+  // ---------- drawing ----------
+  function rrect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function drawRink(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.save(); rrect(X(0),Y(0),200*S,85*S,24*S); ctx.fillStyle='#e9f1f8'; ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle='#9fb0c2'; ctx.stroke(); ctx.clip();
+    const L=(x,c,w)=>{ ctx.strokeStyle=c; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(X(x),Y(0)); ctx.lineTo(X(x),Y(85)); ctx.stroke(); };
+    L(11,'#d7263d',2); L(75,'#1f6fd0',S*1.1); L(100,'#d7263d',S*1.1); L(125,'#1f6fd0',S*1.1);
+    ctx.lineWidth=2;
+    const C=(x,y,r,c)=>{ ctx.strokeStyle=c; ctx.beginPath(); ctx.arc(X(x),Y(y),r*S,0,7); ctx.stroke(); };
+    [[31,22],[31,63]].forEach(([x,y])=>{ C(x,y,15,'#d7263d'); ctx.fillStyle='#d7263d'; ctx.beginPath(); ctx.arc(X(x),Y(y),1.1*S,0,7); ctx.fill();
+      ctx.beginPath(); [[x-3,y-15,x-3,y-17.5],[x+3,y-15,x+3,y-17.5],[x-3,y+15,x-3,y+17.5],[x+3,y+15,x+3,y+17.5]].forEach(([a,b,c2,d])=>{ ctx.moveTo(X(a),Y(b)); ctx.lineTo(X(c2),Y(d)); }); ctx.stroke(); });
+    [[80,22],[80,63]].forEach(([x,y])=>{ ctx.fillStyle='#d7263d'; ctx.beginPath(); ctx.arc(X(x),Y(y),1*S,0,7); ctx.fill(); });
+    C(100,42.5,15,'#1f6fd0');
+    // IceT crest at center ice
+    drawLogo(X(100),Y(42.5));
+    ctx.fillStyle='rgba(31,111,208,.18)'; ctx.beginPath(); ctx.arc(X(11),Y(42.5),6*S,-Math.PI/2,Math.PI/2); ctx.fill(); ctx.strokeStyle='#d7263d'; ctx.lineWidth=1.5; ctx.stroke();
+    ctx.fillStyle='#15202b'; ctx.fillRect(X(7),Y(39),4*S,7*S);
+    ctx.restore();
+    ctx.fillStyle='#5b6673'; ctx.font=`700 ${3*S}px "Barlow Condensed", sans-serif`; ctx.textAlign='center';
+    ctx.fillText('OUR NET',X(11),Y(-1.2)); ctx.fillText('BLUE LINE',X(75),Y(-1.2)); ctx.fillText('RED LINE',X(100),Y(-1.2));
+    ctx.textAlign='left'; ctx.fillText('STRONG SIDE ↑',X(40),Y(-1.2)); ctx.fillText('WEAK SIDE ↓',X(40),Y(89.5));
+  }
+
+  function drawLogo(cx,cy){
+    const u=S; ctx.save(); ctx.translate(cx,cy); ctx.globalAlpha=.92;
+    // badge disc
+    const g=ctx.createRadialGradient(-3*u,-4*u,1*u,0,0,13.5*u); g.addColorStop(0,'#ffffff'); g.addColorStop(1,'#cfe0f3');
+    ctx.beginPath(); ctx.arc(0,0,13.5*u,0,7); ctx.fillStyle=g; ctx.fill();
+    ctx.lineWidth=1.3*u; ctx.strokeStyle='#0d2a57'; ctx.stroke();
+    ctx.beginPath(); ctx.arc(0,0,12*u,0,7); ctx.lineWidth=.45*u; ctx.strokeStyle='#d7263d'; ctx.stroke();
+    // crossed sticks
+    const stick=(ang)=>{ ctx.save(); ctx.rotate(ang); ctx.fillStyle='#0d2a57';
+      ctx.beginPath(); ctx.roundRect ? ctx.roundRect(-.55*u,-10.5*u,1.1*u,17.5*u,.5*u) : ctx.rect(-.55*u,-10.5*u,1.1*u,17.5*u); ctx.fill();
+      ctx.beginPath(); ctx.moveTo(.55*u,6.5*u); ctx.lineTo(-3.6*u,6.9*u); ctx.quadraticCurveTo(-4.6*u,7.3*u,-4.2*u,8.3*u); ctx.lineTo(.8*u,8.1*u); ctx.closePath(); ctx.fill();
+      ctx.fillStyle='#d7263d'; ctx.fillRect(-.55*u,-10.5*u,1.1*u,2.2*u); ctx.restore(); };
+    stick(-0.62); ctx.save(); ctx.scale(-1,1); stick(-0.62); ctx.restore();
+    // stars
+    const star=(x,y,r)=>{ ctx.beginPath(); for(let i=0;i<10;i++){ const a=-Math.PI/2+i*Math.PI/5, rr=i%2?r*.45:r; ctx.lineTo(x+Math.cos(a)*rr,y+Math.sin(a)*rr); } ctx.closePath(); ctx.fillStyle='#d7263d'; ctx.fill(); };
+    star(-8.3*u,-6.2*u,1.3*u); star(8.3*u,-6.2*u,1.3*u); star(0,-9.4*u,1.5*u);
+    // wordmark
+    ctx.textAlign='center'; ctx.textBaseline='middle';
+    ctx.font=`italic 800 ${10.5*u}px "Barlow Condensed", Impact, sans-serif`;
+    const tg=ctx.createLinearGradient(0,-4*u,0,4*u); tg.addColorStop(0,'#2f86ea'); tg.addColorStop(1,'#0d2a57');
+    ctx.lineJoin='round';
+    ctx.lineWidth=2.4*u; ctx.strokeStyle='#ffffff'; ctx.strokeText('IceT',0,.4*u);
+    ctx.lineWidth=.9*u; ctx.strokeStyle='#d7263d'; ctx.strokeText('IceT',0,.4*u);
+    ctx.fillStyle=tg; ctx.fillText('IceT',0,.4*u);
+    // swoosh + puck
+    ctx.beginPath(); ctx.moveTo(-8*u,6*u); ctx.quadraticCurveTo(0,9.2*u,8*u,5.2*u); ctx.quadraticCurveTo(0,7.6*u,-8*u,6*u); ctx.fillStyle='#d7263d'; ctx.fill();
+    ctx.beginPath(); ctx.ellipse(0,9.6*u,2.2*u,.9*u,0,0,7); ctx.fillStyle='#15202b'; ctx.fill();
+    ctx.restore();
+  }
+  const big=()=>cv.clientWidth && cv.clientWidth<700 ? 1.35 : 1;
+  function drawPlayer(p,fill,label,o={}){
+    const r=(o.r||2.9)*S*big(); ctx.save(); ctx.globalAlpha=o.alpha??1;
+    ctx.beginPath(); ctx.arc(X(p[0]),Y(p[1]),r,0,7); ctx.fillStyle=fill; ctx.fill(); ctx.lineWidth=1.6; ctx.strokeStyle=o.stroke||'#fff'; ctx.stroke();
+    if(o.you){ ctx.beginPath(); ctx.arc(X(p[0]),Y(p[1]),r+2.5,0,7); ctx.lineWidth=3.5; ctx.strokeStyle='#15202b'; ctx.stroke(); }
+    ctx.fillStyle=o.ink||'#fff'; ctx.font=`800 ${(label.length>1?2.6:3.2)*S*big()}px "Barlow Condensed", sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,X(p[0]),Y(p[1])+1);
+    if(o.you){ ctx.fillStyle='#15202b'; ctx.font=`800 ${2.6*S*big()}px "Barlow Condensed", sans-serif`; ctx.textBaseline='alphabetic'; ctx.fillText('YOU',X(p[0]),Y(p[1])-r-5); }
+    ctx.restore();
+  }
+  function drawPuck(p){ const on=(performance.now()%700)<350; ctx.save(); ctx.beginPath(); ctx.arc(X(p[0]),Y(p[1]),(on?4.4:3.2)*S*big(),0,7); ctx.fillStyle='#ffd400'; ctx.globalAlpha=on?.5:.2; ctx.fill(); ctx.globalAlpha=1; ctx.beginPath(); ctx.arc(X(p[0]),Y(p[1]),1.6*S*big(),0,7); ctx.fillStyle='#15202b'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle=on?'#ffd400':'#fff'; ctx.stroke(); ctx.restore(); }
+  function arrow(a,b,c,w,dashed,shorten=4.5){ const d=dist(a,b); if(d<2.5) return; const ux=(b[0]-a[0])/d, uy=(b[1]-a[1])/d; ctx.save(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.lineWidth=w; if(dashed) ctx.setLineDash([7,5]); ctx.beginPath(); ctx.moveTo(X(a[0]+ux*4),Y(a[1]+uy*4)); ctx.lineTo(X(b[0]-ux*(shorten+1.5)),Y(b[1]-uy*(shorten+1.5))); ctx.stroke(); ctx.setLineDash([]); const hx=X(b[0]-ux*shorten), hy=Y(b[1]-uy*shorten), s=2.4*S; ctx.beginPath(); ctx.moveTo(hx+ux*s,hy+uy*s); ctx.lineTo(hx-uy*s*.6,hy+ux*s*.6); ctx.lineTo(hx+uy*s*.6,hy-ux*s*.6); ctx.closePath(); ctx.fill(); ctx.restore(); }
+  function target(p,c,label){ ctx.save(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.globalAlpha=.14; ctx.beginPath(); ctx.arc(X(p[0]),Y(p[1]),R*S,0,7); ctx.fill(); ctx.globalAlpha=.95; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.setLineDash([]); if(label){ ctx.font=`800 ${3.4*S}px "Barlow Condensed", sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,X(p[0]),Y(p[1])); } ctx.restore(); }
+
+  function drawScene(pos,{youPos=null,arrowsTo=null}={}){
+    drawRink();
+    // arrows to the next step
+    if(arrowsTo){ const nx=St.v.frames.find(f=>f.p===arrowsTo), via=(nx&&nx.via)||{};
+      const A=(k,c,w,dash,sh)=>{ const pts=[pos[k],...(via[k]||[]),arrowsTo[k]]; if(pts.length>2){ ctx.save(); ctx.strokeStyle=c; ctx.lineWidth=w; if(dash) ctx.setLineDash([7,5]); ctx.beginPath(); ctx.moveTo(X(pts[0][0]),Y(pts[0][1])); for(let i=1;i<pts.length-1;i++) ctx.lineTo(X(pts[i][0]),Y(pts[i][1])); ctx.stroke(); ctx.restore(); arrow(pts[pts.length-2],pts[pts.length-1],c,w,dash,sh); } else arrow(pts[0],pts[1],c,w,dash,sh); };
+      THEM.forEach(k=>A(k,'#8c98a6',1.4,true,4.5)); OURS.forEach(k=>A(k,k===sel?'#d7263d':'#15202b',k===sel?3:1.6,true,4.5)); A('puck','#15202b',2.2,false,2.5); }
+    THEM.forEach(k=>drawPlayer(pos[k],'#c6cfd9','X',{ink:'#4a5561',stroke:'#8c98a6'}));
+    drawPlayer(pos.G,'#23395b','G',{r:2.7});
+    OURS.forEach(k=>{ const p = (k===sel&&youPos)?youPos:pos[k]; const isD=k[1]==='D'; drawPlayer(p,isD?'#23395b':'#e8641b',k,{you:k===sel}); });
+    drawPuck(pos.puck);
+  }
+
+  // ---------- loop ----------
+  let last=performance.now();
+  function loop(now){
+    const real=Math.min(.05,(now-last)/1000); last=now;
+    if(sayT>0){ sayT-=real; if(sayT<=0) banner.className='banner'; }
+    const dt = St.paused?0:real*speed();
+    const v=St.v, F=v.frames;
+    if(St.mode==='watch'){
+      if(St.hold>0){ St.hold-=dt; if(St.hold<=0){ if(St.step>=4){ stopAll(); } else { St.seg=0; } } }
+      else { const a=F[St.step], b=F[St.step+1]; St.seg+=dt; if(St.seg>=b.t-a.t){ St.step++; St.hold=HOLD; refreshCaption(); } }
+      if(St.hold>0||St.mode!=='watch'){ drawScene(F[St.step].p,{arrowsTo:F[St.step+1]?.p}); }
+      else { const a=F[St.step]; drawScene(posAt(v,a.t+St.seg)); }
+    }
+    else if(St.mode==='play'){
+      if(St.countdown>0){ if(!St.paused){ St.countdown-=real; if(St.countdown<=0){ say('DROP!','',.7); refreshCaption(); } } }
+      else {
+        const prevT=St.t; St.t+=dt;
+        if(St.mouse && dt>0){ const d=dist(St.you,St.mouse); if(d>.4){ const s=Math.min(d,SPD*dt); St.you=[clamp(St.you[0]+(St.mouse[0]-St.you[0])/d*s,2,132), clamp(St.you[1]+(St.mouse[1]-St.you[1])/d*s,2,83)]; } }
+        if(dt>0) St.trail.push([...St.you]);
+        for(let i=1;i<F.length;i++){ if(prevT<F[i].t && St.t>=F[i].t){ const d=dist(St.you,F[i].p[sel]); const ok=d<=R; St.checks.push({ok,d}); say(ok?`✓ STEP ${i}`:`✗ STEP ${i}`, ok?'good':'bad', .7); } }
+        if(St.t>=F[F.length-1].t+.5){ finishPlay(); }
+      }
+      if(St.mode==='play'){
+        const pos=posAt(v,St.t);
+        drawScene(pos,{youPos:St.you});
+        if($('spots').checked){ const nxt=F.find(f=>f.t>St.t); if(nxt) target(nxt.p[sel],'#1a9e5c',''); }
+        if(St.touch && St.mouse && dist(St.you,St.mouse)>1.5){ ctx.save(); ctx.strokeStyle='#15202b'; ctx.lineWidth=2.5; const mx=X(St.mouse[0]), my=Y(St.mouse[1]), r=2.2*S*big(); ctx.beginPath(); ctx.moveTo(mx-r,my-r); ctx.lineTo(mx+r,my+r); ctx.moveTo(mx+r,my-r); ctx.lineTo(mx-r,my+r); ctx.stroke(); ctx.setLineDash([4,4]); ctx.globalAlpha=.5; ctx.beginPath(); ctx.moveTo(X(St.you[0]),Y(St.you[1])); ctx.lineTo(mx,my); ctx.stroke(); ctx.restore(); }
+      }
+    }
+    if(St.mode==='review'){ drawReview(); }
+    else if(St.mode==='idle'){ drawScene(F[St.step].p,{arrowsTo:F[St.step+1]?.p}); }
+    requestAnimationFrame(loop);
+  }
+  function drawReview(){
+    const v=St.v, F=v.frames;
+    drawScene(F[F.length-1].p,{youPos:St.you});
+    // correct path
+    ctx.save(); ctx.strokeStyle='#1a9e5c'; ctx.lineWidth=3; ctx.setLineDash([8,6]); ctx.beginPath();
+    for(let t=0;t<=F[F.length-1].t;t+=.05){ const p=posAt(v,t)[sel]; t===0?ctx.moveTo(X(p[0]),Y(p[1])):ctx.lineTo(X(p[0]),Y(p[1])); } ctx.stroke(); ctx.restore();
+    // your trail
+    if(St.trail.length>1){ ctx.save(); ctx.strokeStyle='#1f6fd0'; ctx.lineWidth=3; ctx.lineCap='round'; ctx.beginPath(); St.trail.forEach((p,i)=>i?ctx.lineTo(X(p[0]),Y(p[1])):ctx.moveTo(X(p[0]),Y(p[1]))); ctx.stroke(); ctx.restore(); }
+    for(let i=1;i<F.length;i++){ const c=St.checks[i-1]; target(F[i].p[sel], c&&c.ok?'#1a9e5c':'#d7263d', String(i)); }
+  }
+
+  // ---------- input ----------
+  const stage=$('stage');
+  function toRink(ev){ const r=cv.getBoundingClientRect(); return [((ev.clientX-r.left)/r.width*cv.width-ox)/S, ((ev.clientY-r.top)/r.height*cv.height-oy)/S]; }
+  // mouse: player follows the pointer. touch/pen: tap (or drag) to set where to skate; it keeps going after you lift your finger.
+  stage.addEventListener('pointermove',ev=>{ if(ev.pointerType==='mouse' || ev.buttons){ St.mouse=toRink(ev); St.touch = ev.pointerType!=='mouse'; } });
+  stage.addEventListener('pointerdown',ev=>{ St.mouse=toRink(ev); St.touch = ev.pointerType!=='mouse'; if(St.touch) ev.preventDefault(); });
+  stage.addEventListener('pointerleave',ev=>{ if(ev.pointerType==='mouse') St.mouse=null; });
+  $('clipThumb').onclick=openClip;
+  $('videoClose').onclick=closeClip;
+  $('watchBtn').onclick=startWatch;
+  $('playBtn').onclick=startPlay;
+  $('pauseBtn').onclick=()=>{ if(St.mode==='watch'||St.mode==='play'){ St.paused=!St.paused; $('pauseBtn').textContent=St.paused?'▶ Resume':'❚❚ Pause'; if(St.paused) say('PAUSED','',99); else banner.className='banner'; } };
+  $('prevBtn').onclick=()=>{ if(St.mode==='play') return; if(varSel==='random'&&St.mode==='idle') St.v=VARS[0]; St.mode='idle'; St.paused=false; $('pauseBtn').disabled=true; St.step=Math.max(0,St.step-1); $('results').hidden=true; refreshCaption(); };
+  $('nextBtn').onclick=()=>{ if(St.mode==='play') return; St.mode='idle'; St.paused=false; $('pauseBtn').disabled=true; St.step=Math.min(4,St.step+1); $('results').hidden=true; refreshCaption(); };
+  document.addEventListener('keydown',ev=>{ if(ev.target.tagName==='INPUT') return; if(ev.key===' '){ ev.preventDefault(); $('pauseBtn').click(); } else if(ev.key==='ArrowRight') $('nextBtn').click(); else if(ev.key==='ArrowLeft') $('prevBtn').click(); });
+
+  refreshCaption(); requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

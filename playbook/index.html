@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>10U Center Playbook</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&display=swap">
+<style>
+  :root{
+    --bg:#f2f5f8; --panel:#ffffff; --ink:#15202b; --muted:#5b6673; --line:#d5dde6;
+    --accent:#d7263d; --accent-ink:#ffffff; --tab:#e6ebf1; --tab-on:#15202b; --tab-on-ink:#ffffff;
+    --f1:#d7263d; --f2:#e39b00; --f3:#1f6fd0; --d:#23395b; --opp:#c6cfd9; --opp-ink:#4a5561; --opp-line:#8c98a6;
+    --ice:#e9f1f8; --ice-line:#9fb0c2; --ice-red:#d7263d; --ice-blue:#1f6fd0;
+  }
+  @media (prefers-color-scheme: dark){
+    :root:not([data-theme="light"]){
+      --bg:#0f151b; --panel:#182028; --ink:#eef2f6; --muted:#9aa7b4; --line:#2a3541;
+      --tab:#232d38; --tab-on:#eef2f6; --tab-on-ink:#0f151b;
+      --ice:#dfe9f2; --ice-line:#8d9eb0;
+    }
+  }
+  :root[data-theme="dark"]{
+    --bg:#0f151b; --panel:#182028; --ink:#eef2f6; --muted:#9aa7b4; --line:#2a3541;
+    --tab:#232d38; --tab-on:#eef2f6; --tab-on-ink:#0f151b;
+    --ice:#dfe9f2; --ice-line:#8d9eb0;
+  }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Barlow,"Segoe UI",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.4}
+  .wrap{max-width:920px;margin:0 auto;padding:20px 16px 40px}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  h1{font-family:"Barlow Condensed",Impact,"Arial Narrow",sans-serif;font-weight:800;font-size:40px;letter-spacing:.5px;margin:0;line-height:1;text-transform:uppercase}
+  header p{margin:0;color:var(--muted);font-size:15px}
+  .tabs{display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px}
+  .tab{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:17px;letter-spacing:.3px;text-transform:uppercase;border:0;border-radius:999px;padding:8px 14px;background:var(--tab);color:var(--ink);cursor:pointer}
+  .tab[aria-selected="true"]{background:var(--tab-on);color:var(--tab-on-ink)}
+  .tab:focus-visible,button:focus-visible{outline:3px solid var(--f3);outline-offset:2px}
+  .board{background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .rinkwrap{padding:10px 10px 4px}
+  svg{display:block;width:100%;height:auto}
+  .cap{display:grid;grid-template-columns:auto 1fr;gap:14px;align-items:start;padding:10px 16px 14px;border-top:1px solid var(--line)}
+  .step{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:15px;letter-spacing:1px;text-transform:uppercase;color:var(--muted);padding-top:6px;white-space:nowrap;font-variant-numeric:tabular-nums}
+  .cap p{margin:0;font-size:21px;line-height:1.3;font-weight:600;max-width:60ch;text-wrap:balance}
+  .controls{display:flex;gap:8px;align-items:center;flex-wrap:wrap;padding:0 16px 14px}
+  .btn{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:17px;letter-spacing:.3px;text-transform:uppercase;border:1px solid var(--line);background:var(--panel);color:var(--ink);border-radius:8px;padding:8px 14px;cursor:pointer}
+  .btn.primary{background:var(--accent);color:var(--accent-ink);border-color:var(--accent);min-width:96px}
+  .btn:disabled{opacity:.45;cursor:default}
+  .spacer{flex:1}
+  .speed{display:flex;align-items:center;gap:6px;color:var(--muted);font-size:14px}
+  .legend{display:flex;gap:14px 18px;flex-wrap:wrap;margin-top:14px;color:var(--muted);font-size:14px;align-items:center}
+  .legend span{display:inline-flex;align-items:center;gap:6px}
+  .dot{width:16px;height:16px;border-radius:50%;display:inline-block;border:2px solid transparent}
+  .dot.her{background:var(--f2);border-color:var(--ink);box-shadow:0 0 0 2px var(--panel) inset}
+  .notes{margin-top:22px;color:var(--muted);font-size:15px;max-width:68ch}
+  .notes b{color:var(--ink)}
+  @media (max-width:560px){ .cap{grid-template-columns:1fr} .cap p{font-size:18px} h1{font-size:32px} }
+  @media (prefers-reduced-motion: reduce){ .btn,.tab{transition:none} }
+
+  .home{display:inline-block;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;letter-spacing:.8px;text-transform:uppercase;color:#1f6fd0;text-decoration:none;margin-bottom:4px}
+  .home:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <a class="home" href="../">← IceT home</a>
+  <header>
+    <h1>10U Center Playbook</h1>
+    <p>Our net is always on the left. Press play, or step through one move at a time.</p>
+  </header>
+
+  <div class="tabs" role="tablist" id="tabs"></div>
+
+  <div class="board">
+    <div class="rinkwrap">
+      <svg id="rink" viewBox="-3 -6 206 97" aria-label="Animated hockey rink diagram">
+        <defs>
+          <marker id="mk-ours" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L5,2.5 L0,5 z" fill="#15202b"/></marker>
+          <marker id="mk-opp" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L5,2.5 L0,5 z" fill="#8c98a6"/></marker>
+          <marker id="mk-puck" markerWidth="5" markerHeight="5" refX="4" refY="2.5" orient="auto" markerUnits="strokeWidth"><path d="M0,0 L5,2.5 L0,5 z" fill="#15202b"/></marker>
+          <clipPath id="iceclip"><rect x="0" y="0" width="200" height="85" rx="24"/></clipPath>
+        </defs>
+        <g id="ice">
+          <rect x="0" y="0" width="200" height="85" rx="24" fill="var(--ice)" stroke="var(--ice-line)" stroke-width="1.2"/>
+          <g clip-path="url(#iceclip)">
+            <line x1="100" y1="0" x2="100" y2="85" stroke="var(--ice-red)" stroke-width="1.6"/>
+            <line x1="75" y1="0" x2="75" y2="85" stroke="var(--ice-blue)" stroke-width="1.6"/>
+            <line x1="125" y1="0" x2="125" y2="85" stroke="var(--ice-blue)" stroke-width="1.6"/>
+            <line x1="11" y1="0" x2="11" y2="85" stroke="var(--ice-red)" stroke-width=".8"/>
+            <line x1="189" y1="0" x2="189" y2="85" stroke="var(--ice-red)" stroke-width=".8"/>
+            <circle cx="100" cy="42.5" r="15" fill="none" stroke="var(--ice-blue)" stroke-width=".8"/>
+            <circle cx="31" cy="22" r="15" fill="none" stroke="var(--ice-red)" stroke-width=".8"/>
+            <circle cx="31" cy="63" r="15" fill="none" stroke="var(--ice-red)" stroke-width=".8"/>
+            <circle cx="169" cy="22" r="15" fill="none" stroke="var(--ice-red)" stroke-width=".8"/>
+            <circle cx="169" cy="63" r="15" fill="none" stroke="var(--ice-red)" stroke-width=".8"/>
+            <circle cx="31" cy="22" r="1.2" fill="var(--ice-red)"/><circle cx="31" cy="63" r="1.2" fill="var(--ice-red)"/>
+            <circle cx="169" cy="22" r="1.2" fill="var(--ice-red)"/><circle cx="169" cy="63" r="1.2" fill="var(--ice-red)"/>
+            <path d="M11,36 A7,7 0 0 1 11,49" fill="none" stroke="var(--ice-blue)" stroke-width=".8"/>
+            <path d="M189,36 A7,7 0 0 0 189,49" fill="none" stroke="var(--ice-blue)" stroke-width=".8"/>
+            <rect x="7" y="38" width="4" height="9" fill="#15202b"/>
+            <rect x="189" y="38" width="4" height="9" fill="#15202b"/>
+          </g>
+          <text x="11" y="-2" font-size="4.5" font-weight="700" text-anchor="middle" fill="var(--muted)" font-family="Barlow Condensed, sans-serif" letter-spacing=".4">OUR NET</text>
+          <text x="189" y="-2" font-size="4.5" font-weight="700" text-anchor="middle" fill="var(--muted)" font-family="Barlow Condensed, sans-serif" letter-spacing=".4">THEIR NET</text>
+        </g>
+        <g id="arrows"></g>
+        <g id="players"></g>
+        <g id="puck"><circle r="2.2" fill="#15202b"/></g>
+      </svg>
+    </div>
+    <div class="cap">
+      <div class="step" id="step">Step 1 of 4</div>
+      <p id="caption"></p>
+    </div>
+    <div class="controls">
+      <button class="btn" id="prev" aria-label="Previous step">◀ Back</button>
+      <button class="btn primary" id="play">▶ Play</button>
+      <button class="btn" id="next" aria-label="Next step">Next ▶</button>
+      <button class="btn" id="restart">Restart</button>
+      <div class="spacer"></div>
+      <label class="speed">Speed <input type="range" id="speed" min="0.5" max="2" step="0.25" value="1" aria-label="Animation speed"></label>
+    </div>
+  </div>
+
+  <div class="legend">
+    <span><i class="dot" style="background:var(--f1)"></i>F1 — closest to puck</span>
+    <span><i class="dot" style="background:var(--f2)"></i>F2 — second closest</span>
+    <span><i class="dot" style="background:var(--f3)"></i>F3 — farthest, the safety</span>
+    <span><i class="dot" style="background:var(--d)"></i>Our D</span>
+    <span><i class="dot" style="background:var(--opp);border-color:var(--opp-line)"></i>Other team</span>
+    <span><i class="dot" style="background:#15202b;width:10px;height:10px;margin:0 3px"></i>Puck</span>
+    <span><i class="dot her"></i>Thick black ring = her (C)</span>
+  </div>
+
+  <p class="notes"><b>How to use it:</b> watch the colors on our three forwards. They change every time the puck moves, because F1/F2/F3 is a question you re-answer, not a spot you stand in. Dotted arrows show where each player is going next. Ask her before pressing Next: <b>“Who's F1 now?”</b></p>
+</div>
+
+<script>
+(function(){
+  // ---------- scenes ----------
+  // Positions are rink coordinates: x 0..200 (our net left), y 0..85.
+  // Entities: C = her, LW/RW = our wingers, D1/D2 = our D, G = our goalie,
+  // O1..O5 = other team's skaters, OG = their goalie, puck.
+  const S = [
+    { id:'dzone', name:'Our end: the read', kf:[
+      { cap:'Puck in our corner. C is closest, so she is F1: go help the D. The wingers cover the two players at the blue line.',
+        pos:{C:[36,60],LW:[55,28],RW:[55,60],D1:[27,62],D2:[20,46],G:[14,42],O1:[19,69],O2:[68,20],O3:[68,66],O4:[42,44],O5:[30,18],puck:[23,72]} },
+      { dur:2.6, cap:'Puck goes to the point. RW is closest now, so RW is F1. C drops into the slot as F2. Every time the puck moves, ask again.',
+        pos:{C:[42,50],LW:[50,30],RW:[58,62],D1:[30,58],D2:[22,45],G:[14,42],O1:[22,68],O2:[68,20],O3:[66,66],O4:[45,42],O5:[30,18],puck:[68,68]} },
+      { dur:2.6, cap:'Across to the other point. LW is F1 now. C stays in the middle as F2 and keeps an eye on the player standing in our slot.',
+        pos:{C:[46,40],LW:[60,26],RW:[55,55],D1:[38,50],D2:[24,42],G:[14,42],O1:[22,68],O2:[66,20],O3:[66,66],O4:[44,46],O5:[30,18],puck:[68,22]} },
+      { dur:2.6, cap:'The shot gets blocked and our D has the puck. C is now the outlet: get open in the middle. Breakout time.',
+        pos:{C:[62,42],LW:[70,25],RW:[70,60],D1:[36,52],D2:[24,40],G:[14,42],O1:[26,66],O2:[60,22],O3:[62,64],O4:[40,48],O5:[32,20],puck:[27,42]} }
+    ]},
+    { id:'ozone', name:'Their end: the forecheck', kf:[
+      { cap:'Their D has the puck in the corner. LW is closest, so LW is F1: go get it. C is F2: support. RW is F3: stay high.',
+        pos:{C:[150,40],LW:[160,22],RW:[160,64],D1:[118,26],D2:[118,60],OG:[186,42],O1:[177,17],O2:[172,68],O3:[150,14],O4:[140,45],O5:[150,74],puck:[180,20]} },
+      { dur:2.0, cap:'LW pressures the puck. C stays about a stick-and-a-half away in the middle, ready if the puck pops loose.',
+        pos:{C:[158,38],LW:[172,22],RW:[158,62],D1:[120,26],D2:[120,60],OG:[186,42],O1:[178,18],O2:[172,68],O3:[150,14],O4:[140,45],O5:[150,74],puck:[181,21]} },
+      { dur:2.6, cap:'They reverse it behind their net. RW becomes F1, C stays F2, and LW goes high to become F3. Nobody gets behind F3.',
+        pos:{C:[158,50],LW:[150,30],RW:[168,62],D1:[120,28],D2:[122,62],OG:[186,42],O1:[176,22],O2:[176,68],O3:[150,14],O4:[140,45],O5:[150,74],puck:[178,71]} },
+      { dur:2.6, cap:'Puck goes up the boards. F1 chases, C stays inside, F3 sits at the blue line. Our D2 steps up to keep it in.',
+        pos:{C:[142,55],LW:[130,36],RW:[140,72],D1:[120,28],D2:[124,66],OG:[186,42],O1:[176,22],O2:[168,68],O3:[150,14],O4:[140,45],O5:[130,78],puck:[132,80]} },
+      { dur:2.6, cap:'D2 keeps it in. Now C goes to the net. She spent the whole shift as F2, and that is exactly why she is open now.',
+        pos:{C:[170,44],LW:[150,30],RW:[150,68],D1:[120,28],D2:[128,74],OG:[186,42],O1:[176,22],O2:[168,68],O3:[150,14],O4:[150,48],O5:[135,80],puck:[130,74]} }
+    ]},
+    { id:'fo-ozone', name:'Faceoff: their end', kf:[
+      { cap:'Before the drop: look back and find your D. The plan is to win it back to D2.',
+        pos:{C:[165,63],LW:[161,48],RW:[161,78],D1:[130,48],D2:[130,74],OG:[186,42],O1:[173,63],O2:[176,50],O3:[174,80],O4:[188,30],O5:[184,72],puck:[169,63]} },
+      { dur:1.8, cap:'Won it back to D2. C does not stand on the dot: she goes straight to the front of the net.',
+        pos:{C:[176,50],LW:[152,55],RW:[150,80],D1:[130,48],D2:[132,72],OG:[186,42],O1:[170,62],O2:[170,52],O3:[166,80],O4:[186,32],O5:[184,72],puck:[134,72]} },
+      { dur:1.8, cap:'Point shot. C is in front for the screen, the tip, or the rebound. That is where most 10U goals come from.',
+        pos:{C:[180,46],LW:[160,55],RW:[152,78],D1:[132,48],D2:[132,70],OG:[186,42],O1:[172,60],O2:[160,52],O3:[166,80],O4:[186,36],O5:[182,70],puck:[183,47]} }
+    ]},
+    { id:'fo-dzone', name:'Faceoff: our end', kf:[
+      { cap:'Same plan in our end. Look back, find your D, win it back.',
+        pos:{C:[35,63],LW:[39,48],RW:[39,78],D1:[16,50],D2:[18,74],G:[14,42],O1:[27,63],O2:[23,50],O3:[26,78],O4:[70,50],O5:[70,76],puck:[31,63]} },
+      { dur:1.8, cap:'Won it back. D2 has the puck. C swings through the middle for the pass, wingers go to the boards.',
+        pos:{C:[45,50],LW:[48,22],RW:[48,78],D1:[20,46],D2:[20,72],G:[14,42],O1:[32,60],O2:[30,52],O3:[34,78],O4:[68,50],O5:[68,74],puck:[22,73]} },
+      { dur:2.0, cap:'D to C in the middle, head up. Go!',
+        pos:{C:[56,45],LW:[70,20],RW:[70,80],D1:[30,46],D2:[30,70],G:[14,42],O1:[40,58],O2:[40,52],O3:[44,78],O4:[70,48],O5:[70,74],puck:[58,45]} },
+      { dur:2.2, cap:'Out of our zone with speed. Wingers wide, C in the middle lane, D following behind.',
+        pos:{C:[95,42],LW:[100,18],RW:[100,78],D1:[60,40],D2:[62,66],G:[14,42],O1:[70,55],O2:[72,50],O3:[74,76],O4:[88,48],O5:[88,72],puck:[98,42]} }
+    ]},
+    { id:'backcheck', name:'The backcheck', kf:[
+      { cap:'We lost the puck at their blue line. C: three hard strides toward our net. Do not watch the play.',
+        pos:{C:[162,36],LW:[172,16],RW:[168,76],D1:[100,26],D2:[100,60],G:[14,42],O1:[140,20],O2:[135,70],O3:[155,45],O4:[185,30],O5:[185,60],puck:[144,22]} },
+      { dur:2.6, cap:'Middle lane. D1 takes the puck carrier, D2 takes the wide player. C races for the late one coming through the middle.',
+        pos:{C:[118,45],LW:[122,14],RW:[120,78],D1:[76,24],D2:[78,62],G:[14,42],O1:[100,18],O2:[100,68],O3:[120,44],O4:[185,30],O5:[185,60],puck:[104,20]} },
+      { dur:2.6, cap:'C beat the late player to our slot. Stay between him and the goalie, stick on the ice.',
+        pos:{C:[36,44],LW:[70,14],RW:[70,78],D1:[42,26],D2:[44,62],G:[14,42],O1:[52,20],O2:[52,68],O3:[66,44],O4:[150,30],O5:[150,60],puck:[56,22]} },
+      { dur:1.6, cap:'Pass to the slot? C is already there. Nothing happened. That is a perfect backcheck.',
+        pos:{C:[36,44],LW:[66,14],RW:[66,78],D1:[42,26],D2:[44,62],G:[14,42],O1:[52,20],O2:[52,68],O3:[58,44],O4:[150,30],O5:[150,60],puck:[39,42]} }
+    ]}
+  ];
+
+  const FCOL = ['#d7263d','#e39b00','#1f6fd0'];
+  const CSS = getComputedStyle(document.documentElement);
+  const col = n => CSS.getPropertyValue(n).trim() || '#000';
+  const svg = document.getElementById('rink');
+  const gArrows = document.getElementById('arrows');
+  const gPlayers = document.getElementById('players');
+  const gPuck = document.getElementById('puck');
+  const capEl = document.getElementById('caption');
+  const stepEl = document.getElementById('step');
+  const tabsEl = document.getElementById('tabs');
+  const btnPlay = document.getElementById('play'), btnPrev = document.getElementById('prev'),
+        btnNext = document.getElementById('next'), btnRestart = document.getElementById('restart'),
+        speedEl = document.getElementById('speed');
+  const reduce = matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const HOLD = 1400; // ms pause on each step while playing
+
+  let sceneIdx = 0, frame = 0, playing = false, seg = null, raf = 0, holdTimer = 0;
+  const nodes = {};
+
+  function el(tag, attrs){ const e = document.createElementNS('http://www.w3.org/2000/svg', tag); for (const k in attrs) e.setAttribute(k, attrs[k]); return e; }
+  function lerp(a,b,t){ return [a[0]+(b[0]-a[0])*t, a[1]+(b[1]-a[1])*t]; }
+  function ease(t){ return t<.5 ? 2*t*t : -1+(4-2*t)*t; }
+  function dist(a,b){ return Math.hypot(a[0]-b[0], a[1]-b[1]); }
+
+  function buildTabs(){
+    S.forEach((s,i)=>{
+      const b = document.createElement('button');
+      b.className='tab'; b.role='tab'; b.textContent=s.name; b.setAttribute('aria-selected', i===0);
+      b.addEventListener('click', ()=>{ loadScene(i); });
+      tabsEl.appendChild(b);
+    });
+  }
+
+  function buildPlayers(pos){
+    gPlayers.innerHTML=''; for (const k in nodes) delete nodes[k];
+    const order = ['O1','O2','O3','O4','O5','OG','G','D1','D2','LW','RW','C'];
+    order.forEach(id=>{
+      if(!pos[id]) return;
+      const g = el('g',{class:'p'});
+      const isOpp = id[0]==='O';
+      const isGoalie = id==='G'||id==='OG';
+      let shape;
+      if(isGoalie){ shape = el('rect',{x:-4,y:-4,width:8,height:8,rx:2,fill:isOpp?col('--opp'):col('--d'),stroke:isOpp?col('--opp-line'):'none','stroke-width':.8}); }
+      else { shape = el('circle',{r:5.2,fill:isOpp?col('--opp'):col('--d'),stroke:isOpp?col('--opp-line'):'#ffffff','stroke-width':id==='C'?0:0.9}); }
+      g.appendChild(shape);
+      if(id==='C'){ g.appendChild(el('circle',{r:6.6,fill:'none',stroke:'#15202b','stroke-width':1.8})); }
+      const label = isGoalie ? 'G' : isOpp ? 'X' : id==='C' ? 'C' : id[0]==='D' ? 'D' : 'W';
+      const t = el('text',{y:2.2,'text-anchor':'middle','font-size':isOpp?5:5.6,'font-weight':'800','font-family':'Barlow Condensed, sans-serif',fill:isOpp?col('--opp-ink'):'#ffffff'});
+      t.textContent = label; g.appendChild(t);
+      if(id==='C'||id==='LW'||id==='RW'){
+        const tag = el('text',{y:-8.2,'text-anchor':'middle','font-size':4.8,'font-weight':'800','font-family':'Barlow Condensed, sans-serif',fill:'#15202b',class:'ftag'});
+        g.appendChild(tag); g._tag=tag; g._shape=shape;
+      }
+      gPlayers.appendChild(g); nodes[id]=g;
+    });
+  }
+
+  function render(pos){
+    for(const id in nodes){ const p=pos[id]; nodes[id].setAttribute('transform',`translate(${p[0]},${p[1]})`); }
+    gPuck.setAttribute('transform',`translate(${pos.puck[0]},${pos.puck[1]})`);
+    // live F1/F2/F3 by distance to puck
+    const fw = ['C','LW','RW'].filter(k=>pos[k]).map(k=>({k,d:dist(pos[k],pos.puck)})).sort((a,b)=>a.d-b.d);
+    fw.forEach((f,i)=>{ const n=nodes[f.k]; n._shape.setAttribute('fill',FCOL[i]); n._tag.textContent='F'+(i+1); n._tag.setAttribute('fill',FCOL[i]); });
+  }
+
+  function drawArrows(from,to){
+    gArrows.innerHTML='';
+    const ids = Object.keys(to).filter(k=>k!=='puck' && from[k] && dist(from[k],to[k])>4);
+    ids.forEach(id=>{
+      const isOpp=id[0]==='O';
+      const a=from[id], b=to[id];
+      // shorten so the head stops at the circle edge
+      const d=dist(a,b), ux=(b[0]-a[0])/d, uy=(b[1]-a[1])/d;
+      gArrows.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0]-ux*6.5,y2:b[1]-uy*6.5,stroke:isOpp?'#8c98a6':'#15202b','stroke-width':isOpp?.8:1.1,'stroke-dasharray':'2.2 1.6','marker-end':isOpp?'url(#mk-opp)':'url(#mk-ours)',opacity:isOpp?.8:.9}));
+    });
+    if(dist(from.puck,to.puck)>4){
+      const a=from.puck,b=to.puck,d=dist(a,b),ux=(b[0]-a[0])/d,uy=(b[1]-a[1])/d;
+      gArrows.appendChild(el('line',{x1:a[0],y1:a[1],x2:b[0]-ux*3,y2:b[1]-uy*3,stroke:'#15202b','stroke-width':1.2,'marker-end':'url(#mk-puck)'}));
+    }
+  }
+
+  function setCaption(){
+    const s=S[sceneIdx];
+    stepEl.textContent=`Step ${frame+1} of ${s.kf.length}`;
+    capEl.textContent=s.kf[frame].cap;
+    btnPrev.disabled = frame===0;
+    btnNext.disabled = frame===s.kf.length-1;
+  }
+
+  function loadScene(i){
+    stop();
+    sceneIdx=i; frame=0;
+    [...tabsEl.children].forEach((b,j)=>b.setAttribute('aria-selected', j===i));
+    const s=S[i];
+    buildPlayers(s.kf[0].pos);
+    gArrows.innerHTML='';
+    render(s.kf[0].pos);
+    if(s.kf.length>1) drawArrows(s.kf[0].pos, s.kf[1].pos);
+    setCaption();
+    btnPlay.textContent='▶ Play';
+  }
+
+  function goTo(i){
+    // jump without animation
+    cancelAnimationFrame(raf); clearTimeout(holdTimer); seg=null;
+    const s=S[sceneIdx]; frame=Math.max(0,Math.min(s.kf.length-1,i));
+    gArrows.innerHTML='';
+    render(s.kf[frame].pos);
+    if(frame<s.kf.length-1) drawArrows(s.kf[frame].pos, s.kf[frame+1].pos);
+    setCaption();
+  }
+
+  function animateTo(i, then){
+    const s=S[sceneIdx];
+    if(i<0||i>=s.kf.length) return;
+    const from=s.kf[frame].pos, to=s.kf[i].pos;
+    frame=i; setCaption();
+    drawArrows(from,to);
+    if(reduce){ render(to); if(then) then(); return; }
+    const dur=(s.kf[i].dur||2)*1000/parseFloat(speedEl.value);
+    const t0=performance.now();
+    cancelAnimationFrame(raf);
+    const tick=now=>{
+      const t=Math.min(1,(now-t0)/dur), e=ease(t), cur={};
+      for(const k in to) cur[k]=lerp(from[k],to[k],e);
+      render(cur);
+      if(t<1) raf=requestAnimationFrame(tick);
+      else { // keep next arrows visible at rest
+        gArrows.innerHTML=''; if(frame<s.kf.length-1) drawArrows(to, s.kf[frame+1].pos);
+        if(then) then();
+      }
+    };
+    raf=requestAnimationFrame(tick);
+  }
+
+  function stop(){ playing=false; cancelAnimationFrame(raf); clearTimeout(holdTimer); btnPlay.textContent='▶ Play'; }
+
+  function playLoop(){
+    const s=S[sceneIdx];
+    if(!playing) return;
+    if(frame>=s.kf.length-1){ stop(); btnPlay.textContent='↻ Replay'; return; }
+    animateTo(frame+1, ()=>{ holdTimer=setTimeout(playLoop, HOLD/parseFloat(speedEl.value)); });
+  }
+
+  btnPlay.addEventListener('click', ()=>{
+    const s=S[sceneIdx];
+    if(playing){ stop(); return; }
+    if(frame>=s.kf.length-1){ goTo(0); }
+    playing=true; btnPlay.textContent='❚❚ Pause';
+    holdTimer=setTimeout(playLoop, 500);
+  });
+  btnNext.addEventListener('click', ()=>{ stop(); animateTo(frame+1); });
+  btnPrev.addEventListener('click', ()=>{ stop(); goTo(frame-1); });
+  btnRestart.addEventListener('click', ()=>{ stop(); goTo(0); });
+  document.addEventListener('keydown', e=>{
+    if(e.target.tagName==='INPUT') return;
+    if(e.key==='ArrowRight'){ btnNext.click(); } else if(e.key==='ArrowLeft'){ btnPrev.click(); } else if(e.key===' '){ e.preventDefault(); btnPlay.click(); }
+  });
+
+  buildTabs();
+  loadScene(0);
+})();
+</script>
+
+</body>
+</html>

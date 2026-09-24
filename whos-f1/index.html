@@ -1,0 +1,401 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Who's F1?</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&display=swap">
+<style>
+  :root{
+    --bg:#f2f5f8; --panel:#ffffff; --ink:#15202b; --muted:#5b6673; --line:#d5dde6;
+    --accent:#d7263d; --good:#1a9e5c; --bad:#d7263d;
+    --f1:#d7263d; --f2:#e39b00; --f3:#1f6fd0; --d:#23395b;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0f151b; --panel:#182028; --ink:#eef2f6; --muted:#9aa7b4; --line:#2a3541; } }
+  :root[data-theme="dark"]{ --bg:#0f151b; --panel:#182028; --ink:#eef2f6; --muted:#9aa7b4; --line:#2a3541; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Barlow,"Segoe UI",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.4;-webkit-user-select:none;user-select:none}
+  .wrap{max-width:980px;margin:0 auto;padding:16px 14px 32px}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  h1{font-family:"Barlow Condensed",Impact,"Arial Narrow",sans-serif;font-weight:800;font-size:40px;letter-spacing:.5px;margin:0;line-height:1;text-transform:uppercase}
+  header p{margin:0;color:var(--muted);font-size:15px}
+  .hud{display:grid;grid-template-columns:repeat(4,auto) 1fr;gap:18px;align-items:end;margin-bottom:8px}
+  .hud .k{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .hud .v{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:32px;line-height:1;font-variant-numeric:tabular-nums}
+  .hud .v.good{color:var(--good)}
+  .stage{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:crosshair;touch-action:none}
+  canvas{display:block;width:100%;height:auto}
+  .banner{position:absolute;left:0;right:0;top:0;padding:10px 16px;text-align:center;pointer-events:none;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:30px;text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);background:linear-gradient(rgba(21,32,43,.55),rgba(21,32,43,0));opacity:0;transition:opacity .15s}
+  .banner.show{opacity:1}
+  .banner.good{color:#9df0c0} .banner.bad{color:#ffb3bd}
+  .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(21,32,43,.72);color:#fff;text-align:center;padding:20px}
+  .overlay[hidden]{display:none}
+  .overlay .box{max-width:520px}
+  .overlay h2{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:44px;margin:0 0 6px;line-height:1;text-transform:uppercase}
+  .overlay p{margin:0 0 14px;font-size:18px;text-wrap:balance}
+  .overlay .big{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:72px;line-height:1;margin:6px 0 2px;font-variant-numeric:tabular-nums}
+  .btn{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:22px;letter-spacing:.5px;text-transform:uppercase;border:0;background:var(--accent);color:#fff;border-radius:10px;padding:12px 26px;cursor:pointer}
+  .btn:focus-visible,input:focus-visible{outline:3px solid var(--f3);outline-offset:2px}
+  .btn.small{font-size:17px;padding:7px 14px;background:var(--ink);color:var(--panel)}
+  .btn.small:disabled{opacity:.4;cursor:default}
+  .pause{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:0 0 26px;pointer-events:none;background:rgba(21,32,43,.18)}
+  .pause[hidden]{display:none}
+  .pause div{background:rgba(21,32,43,.9);color:#fff;border-radius:12px;padding:10px 18px;max-width:560px;text-align:center}
+  .pause b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:30px;letter-spacing:1px;line-height:1.1}
+  .pause span{font-size:15px}
+  .bar{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:10px;color:var(--muted);font-size:15px}
+  .bar label{display:flex;align-items:center;gap:8px;cursor:pointer}
+  .bar input{width:18px;height:18px}
+  .rules{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+  .rule{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--muted)}
+  .rule b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+  .rule.f1 b{color:var(--f1)} .rule.f2 b{color:var(--f2)} .rule.f3 b{color:var(--f3)} .rule.bc b{color:var(--ink)}
+  @media (max-width:600px){ h1{font-size:32px} .hud{gap:12px} .hud .v{font-size:26px} .banner{font-size:22px} }
+
+  .home{display:inline-block;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;letter-spacing:.8px;text-transform:uppercase;color:#1f6fd0;text-decoration:none;margin-bottom:4px}
+  .home:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <a class="home" href="../">← IceT home</a>
+  <header>
+    <h1>Who's F1?</h1>
+    <p>Move the mouse to skate, <b>click when you're in position</b>. You're the <b>C</b> with the black ring. Our net is on the left.</p>
+  </header>
+
+  <div class="hud">
+    <div><div class="k">Score</div><div class="v" id="score">0</div></div>
+    <div><div class="k">Play</div><div class="v" id="play">–</div></div>
+    <div><div class="k">Streak</div><div class="v good" id="streak">0</div></div>
+    <div><div class="k">Best</div><div class="v" id="best">0</div></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="c" width="1030" height="470"></canvas>
+    <div class="banner" id="banner"></div>
+    <div class="overlay" id="startOv">
+      <div class="box">
+        <h2>Who's F1?</h2>
+        <p>The puck shows up somewhere. Nobody tells you if you're <b>F1</b>, <b>F2</b> or <b>F3</b> — you figure it out, skate to the right spot, and <b>click</b> to lock it in before the timer runs out. If the other team steals it — <b>backcheck!</b></p>
+        <button class="btn" id="startBtn">Start · 10 plays</button>
+      </div>
+    </div>
+    <div class="pause" id="pauseOv" hidden><div><b>PAUSED</b><span>Talk it through: what are you right now? Where should you go? Press Resume (or the space bar) when she's ready.</span></div></div>
+    <div class="overlay" id="endOv" hidden>
+      <div class="box">
+        <h2 id="endTitle">Game over</h2>
+        <div class="big" id="endScore">0</div>
+        <p id="endMsg"></p>
+        <button class="btn" id="againBtn">Play again</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <button class="btn small" id="pauseBtn" disabled>❚❚ Pause</button>
+    <label><input type="checkbox" id="zones" checked> Show me the zones (training wheels)</label>
+    <label><input type="checkbox" id="sound" checked> Sound</label>
+    <label>Time to move <input type="range" id="moveTime" min="2" max="120" step="1" value="4" style="width:160px"> <b id="moveTimeV" style="font-variant-numeric:tabular-nums;min-width:3ch;display:inline-block">4s</b></label>
+    <span id="hint" style="flex:1"></span>
+  </div>
+
+  <div class="rules">
+    <div class="rule f1"><b>F1 · closest</b>Go get the puck. Skate right to it.</div>
+    <div class="rule f2"><b>F2 · second</b>Back up F1. About a stick-and-a-half away, on the inside.</div>
+    <div class="rule f3"><b>F3 · farthest</b>Be the safety. Stay high, in the middle, between the puck and our net.</div>
+    <div class="rule bc"><b>Backcheck</b>Lost the puck? Don't chase. Middle lane, race to our slot.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+  const W=200,H=85, PAD=3; // rink units
+  const S=cv.width/(W+PAD*2); // px per unit
+  const ox=PAD*S, oy=PAD*S;
+  const X=x=>ox+x*S, Y=y=>oy+y*S;
+  const $=id=>document.getElementById(id);
+  const banner=$('banner'), hint=$('hint');
+  const FCOL=['#d7263d','#e39b00','#1f6fd0'];
+  const PLAYS=10, SPEED=62; // units/sec she can skate
+
+  let best=0; try{ best=+localStorage.getItem('whosf1-best')||0; }catch(e){}
+  // configurable time to move after the puck appears (seconds)
+  const mt=$('moveTime'), mtV=$('moveTimeV');
+  try{ const sv=localStorage.getItem('whosf1-movetime'); if(sv) mt.value=sv; }catch(e){}
+  function moveTime(){ return parseFloat(mt.value); }
+  function showMT(){ mtV.textContent=moveTime()+'s'; }
+  mt.addEventListener('input',()=>{ showMT(); try{ localStorage.setItem('whosf1-movetime',mt.value); }catch(e){} });
+  showMT();
+  $('best').textContent=best;
+
+  // ---------- audio ----------
+  let ac=null;
+  function beep(kind){
+    if(!$('sound').checked) return;
+    try{
+      ac=ac||new (window.AudioContext||window.webkitAudioContext)();
+      const o=ac.createOscillator(), g=ac.createGain(); o.connect(g); g.connect(ac.destination);
+      const t=ac.currentTime;
+      if(kind==='good'){ o.frequency.setValueAtTime(660,t); o.frequency.setValueAtTime(880,t+.09); g.gain.setValueAtTime(.12,t); g.gain.exponentialRampToValueAtTime(.001,t+.3); o.start(t); o.stop(t+.3); }
+      else if(kind==='bad'){ o.type='square'; o.frequency.setValueAtTime(220,t); o.frequency.setValueAtTime(160,t+.12); g.gain.setValueAtTime(.08,t); g.gain.exponentialRampToValueAtTime(.001,t+.35); o.start(t); o.stop(t+.35); }
+      else if(kind==='alarm'){ o.type='sawtooth'; o.frequency.setValueAtTime(520,t); o.frequency.setValueAtTime(390,t+.1); o.frequency.setValueAtTime(520,t+.2); g.gain.setValueAtTime(.1,t); g.gain.exponentialRampToValueAtTime(.001,t+.45); o.start(t); o.stop(t+.45); }
+      else { o.frequency.setValueAtTime(440,t); g.gain.setValueAtTime(.06,t); g.gain.exponentialRampToValueAtTime(.001,t+.12); o.start(t); o.stop(t+.12); }
+    }catch(e){}
+  }
+
+  // ---------- helpers ----------
+  const rnd=(a,b)=>a+Math.random()*(b-a);
+  const clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  const pick=arr=>arr[Math.floor(Math.random()*arr.length)];
+
+  // ---------- zones ----------
+  // Each zone: test(p) -> bool, ideal -> point, draw(ctx) outline.
+  function zoneFor(role, puck){
+    if(role===0){ // F1
+      return { name:'F1', test:p=>dist(p,puck)<=12, ideal:{x:puck.x-4*Math.sign(puck.x-100||1),y:puck.y},
+        draw(){ circ(puck.x,puck.y,12,FCOL[0]); } };
+    }
+    if(role===1){ // F2: support ring, inside (toward our net) half
+      const inside=p=>p.x<=puck.x+6;
+      return { name:'F2', test:p=>{const d=dist(p,puck);return d>12&&d<=30&&inside(p);},
+        ideal:(()=>{ const tx=puck.x-14, ty=42.5; const dx=tx-puck.x, dy=ty-puck.y, l=Math.hypot(dx,dy)||1; return {x:clamp(puck.x+dx/l*19,8,192), y:clamp(puck.y+dy/l*19,6,79)}; })(),
+        draw(){ ring(puck.x,puck.y,12,30,FCOL[1],puck.x+6); } };
+    }
+    // F3: the safety. In our zone = high forward (top of circles, middle). Elsewhere = between puck and our net, middle lane.
+    let x0,x1;
+    if(puck.x<70){ x0=44; x1=72; } else { x1=clamp(puck.x-18,50,180); x0=clamp(puck.x-46,30,x1-14); }
+    return { name:'F3', test:p=>p.x>=x0&&p.x<=x1&&p.y>=22&&p.y<=63, ideal:{x:(x0+x1)/2,y:42.5},
+      draw(){ box(x0,22,x1,63,FCOL[2]); } };
+  }
+  const SLOT={x0:20,x1:44,y0:30,y1:55};
+  const LANE={y0:24,y1:61};
+
+  // ---------- drawing primitives ----------
+  function circ(x,y,r,c){ ctx.save(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.globalAlpha=.14; ctx.beginPath(); ctx.arc(X(x),Y(y),r*S,0,7); ctx.fill(); ctx.globalAlpha=.9; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.restore(); }
+  function ring(x,y,r0,r1,c,maxX){ ctx.save(); ctx.beginPath(); ctx.rect(0,0,X(maxX),cv.height); ctx.clip(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.globalAlpha=.14; ctx.beginPath(); ctx.arc(X(x),Y(y),r1*S,0,7); ctx.arc(X(x),Y(y),r0*S,0,7,true); ctx.fill('evenodd'); ctx.globalAlpha=.9; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.arc(X(x),Y(y),r1*S,0,7); ctx.stroke(); ctx.beginPath(); ctx.arc(X(x),Y(y),r0*S,0,7); ctx.stroke(); ctx.restore(); }
+  function box(x0,y0,x1,y1,c){ ctx.save(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.globalAlpha=.14; ctx.fillRect(X(x0),Y(y0),(x1-x0)*S,(y1-y0)*S); ctx.globalAlpha=.9; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.strokeRect(X(x0),Y(y0),(x1-x0)*S,(y1-y0)*S); ctx.restore(); }
+  function rrect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+
+  function drawRink(){
+    ctx.clearRect(0,0,cv.width,cv.height);
+    ctx.save();
+    rrect(X(0),Y(0),W*S,H*S,24*S); ctx.fillStyle='#e9f1f8'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#9fb0c2'; ctx.stroke(); ctx.clip();
+    const L=(x,c,w)=>{ ctx.strokeStyle=c; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(X(x),Y(0)); ctx.lineTo(X(x),Y(H)); ctx.stroke(); };
+    L(100,'#d7263d',2.2*S/2); L(75,'#1f6fd0',2.2*S/2); L(125,'#1f6fd0',2.2*S/2); L(11,'#d7263d',1.5); L(189,'#d7263d',1.5);
+    ctx.lineWidth=1.5;
+    const C=(x,y,r,c)=>{ ctx.strokeStyle=c; ctx.beginPath(); ctx.arc(X(x),Y(y),r*S,0,7); ctx.stroke(); };
+    C(100,42.5,15,'#1f6fd0'); [[31,22],[31,63],[169,22],[169,63]].forEach(([x,y])=>{ C(x,y,15,'#d7263d'); ctx.fillStyle='#d7263d'; ctx.beginPath(); ctx.arc(X(x),Y(y),1.2*S,0,7); ctx.fill(); });
+    ctx.strokeStyle='#1f6fd0'; ctx.beginPath(); ctx.arc(X(11),Y(42.5),7*S,-Math.PI/2,Math.PI/2); ctx.stroke(); ctx.beginPath(); ctx.arc(X(189),Y(42.5),7*S,Math.PI/2,Math.PI*1.5); ctx.stroke();
+    ctx.fillStyle='#15202b'; ctx.fillRect(X(7),Y(38),4*S,9*S); ctx.fillRect(X(189),Y(38),4*S,9*S);
+    ctx.restore();
+    ctx.fillStyle='#5b6673'; ctx.font=`700 ${3.4*S}px "Barlow Condensed", sans-serif`; ctx.textAlign='center'; ctx.fillText('OUR NET',X(11),Y(-0.9)); ctx.fillText('THEIR NET',X(189),Y(-0.9));
+  }
+  function drawPlayer(p,fill,label,opts={}){
+    const r=(opts.r||5.2)*S;
+    ctx.save(); ctx.globalAlpha=opts.alpha??1;
+    ctx.beginPath(); ctx.arc(X(p.x),Y(p.y),r,0,7); ctx.fillStyle=fill; ctx.fill();
+    ctx.lineWidth=opts.stroke?2:1.4; ctx.strokeStyle=opts.stroke||'#fff'; ctx.stroke();
+    if(opts.ring){ ctx.beginPath(); ctx.arc(X(p.x),Y(p.y),r+2.2,0,7); ctx.lineWidth=3.2; ctx.strokeStyle='#15202b'; ctx.stroke(); }
+    ctx.fillStyle=opts.ink||'#fff'; ctx.font=`800 ${5.6*S}px "Barlow Condensed", sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,X(p.x),Y(p.y)+1);
+    if(opts.tag){ ctx.fillStyle=opts.tagColor||'#15202b'; ctx.font=`800 ${4.8*S}px "Barlow Condensed", sans-serif`; ctx.textBaseline='alphabetic'; ctx.fillText(opts.tag,X(p.x),Y(p.y)-r-4); }
+    ctx.restore();
+  }
+  function drawPuck(p){
+    // blinking halo so the puck is easy to find
+    const ph=(performance.now()%700)/700, on=ph<.5;
+    ctx.save();
+    ctx.beginPath(); ctx.arc(X(p.x),Y(p.y),(on?7:5)*S,0,7); ctx.fillStyle='#ffd400'; ctx.globalAlpha=on?.55:.2; ctx.fill();
+    ctx.globalAlpha=1; ctx.beginPath(); ctx.arc(X(p.x),Y(p.y),3*S,0,7); ctx.fillStyle='#15202b'; ctx.fill();
+    ctx.lineWidth=2.5; ctx.strokeStyle=on?'#ffd400':'#ffffff'; ctx.stroke();
+    ctx.restore();
+  }
+  function drawArrow(a,b,c,w){ const d=dist(a,b); if(d<1) return; const ux=(b.x-a.x)/d, uy=(b.y-a.y)/d; ctx.save(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.lineWidth=w; ctx.setLineDash([7,5]); ctx.beginPath(); ctx.moveTo(X(a.x),Y(a.y)); ctx.lineTo(X(b.x-ux*7),Y(b.y-uy*7)); ctx.stroke(); ctx.setLineDash([]); const hx=X(b.x-ux*6.5), hy=Y(b.y-uy*6.5), s=2.6*S; ctx.beginPath(); ctx.moveTo(hx+ux*s,hy+uy*s); ctx.lineTo(hx-uy*s*.6,hy+ux*s*.6); ctx.lineTo(hx+uy*s*.6,hy-ux*s*.6); ctx.closePath(); ctx.fill(); ctx.restore(); }
+  function timerBar(frac,c){ ctx.save(); ctx.fillStyle='#15202b'; ctx.globalAlpha=.12; ctx.fillRect(X(40),Y(H+0.8),120*S,1.6*S); ctx.globalAlpha=1; ctx.fillStyle=c; ctx.fillRect(X(40),Y(H+0.8),120*S*frac,1.6*S); ctx.restore(); }
+
+  // ---------- game state ----------
+  const G={ paused:false, phase:'idle', n:0, score:0, streak:0, her:{x:100,y:42.5}, mouse:null, play:null, t:0, path:[] };
+
+  function say(txt,cls){ banner.textContent=txt; banner.className='banner show '+(cls||''); }
+  function hush(){ banner.className='banner'; }
+  function hud(){ $('score').textContent=G.score; $('play').textContent=G.n?`${G.n}/${PLAYS}`:'–'; $('streak').textContent=G.streak; $('best').textContent=best; }
+
+  function makePlay(){
+    const zone=pick(['d','d','n','o','o','o']);
+    const puck={ x: zone==='d'?rnd(14,66):zone==='n'?rnd(78,122):rnd(132,186), y:rnd(9,76) };
+    let tries=0, LW,RW,her,roles;
+    do{
+      LW={x:clamp(puck.x+rnd(-34,34),10,190),y:rnd(10,30)};
+      RW={x:clamp(puck.x+rnd(-34,34),10,190),y:rnd(55,76)};
+      her={x:clamp(puck.x+rnd(-40,40),12,188),y:rnd(22,63)};
+      const ds=[dist(her,puck),dist(LW,puck),dist(RW,puck)];
+      const sorted=[...ds].sort((a,b)=>a-b);
+      roles = sorted[1]-sorted[0]>=7 && sorted[2]-sorted[1]>=7 ? ds : null;
+      if(roles && dist(her,puck)<10) roles=null; // don't start her already on the puck
+      tries++;
+    }while(!roles && tries<60);
+    const ds=[dist(her,puck),dist(LW,puck),dist(RW,puck)];
+    const order=[0,1,2].sort((a,b)=>ds[a]-ds[b]); // indices sorted by distance
+    const ranks=[0,0,0]; order.forEach((idx,rank)=>ranks[idx]=rank); // ranks[0]=her, [1]=LW, [2]=RW
+    const role=ranks[0];
+    const D1={x:clamp(Math.min(puck.x-22,120),14,140),y:26}, D2={x:clamp(Math.min(puck.x-22,120),14,140),y:60};
+    const opps=[]; let guard=0;
+    while(opps.length<5&&guard++<200){ const o={x:clamp(puck.x+rnd(-45,45),12,188),y:rnd(8,77)}; if([her,LW,RW,D1,D2,puck,...opps].every(q=>dist(q,o)>11)) opps.push(o); }
+    const holder = zone!=='d' && Math.random()<.5 ? 'us' : (Math.random()<.5?'them':'loose');
+    if(holder==='them'){ opps[0]={x:puck.x-3.5,y:puck.y+2.5}; }
+    const intercept = zone==='o' && Math.random()<.5;
+    return { zone, puck, LW, RW, her, D1, D2, opps, role, ranks, zone_:zoneFor(role,puck), intercept, holder, dur:moveTime() };
+  }
+
+  function startPlay(){
+    G.n++; hud(); G.play=makePlay(); G.her={...G.play.her}; G.path=[]; G.t=0; G.phase='read'; G.readT=0; G.mouse=null;
+    say('READ!',''); beep('tick'); hint.textContent = ['Who\'s closest? That\'s F1. Second? F2. Farthest? F3.','Every time the puck shows up, ask again.','Farthest from the puck? Don\'t chase it.','In their end? Be ready — they might steal it.'][G.n%4];
+  }
+  function startRush(){
+    const P=G.play; G.phase='rush'; G.t=0; G.path=[]; P.dur=moveTime()+1;
+    say('INTERCEPTED! BACKCHECK!','bad'); beep('alarm');
+    // three attackers rush toward our net; two stay back
+    P.rush=P.opps.slice(0,3).map((o,i)=>({from:{...o},to:{x:i===0?36:i===1?40:52, y:i===0?18:i===1?68:42.5}}));
+    P.rush[0].from={x:P.puck.x,y:P.puck.y};
+    P.puckFrom={...P.puck}; P.dRush=[{from:{...P.D1},to:{x:30,y:26}},{from:{...P.D2},to:{x:32,y:60}}];
+    P.wRush=[{from:{...P.LW},to:{x:70,y:14}},{from:{...P.RW},to:{x:70,y:78}}];
+  }
+  function grade(){
+    const P=G.play; let ok, msg, pts;
+    if(G.phase==='rush'){
+      const inSlot=G.her.x>=SLOT.x0&&G.her.x<=SLOT.x1&&G.her.y>=SLOT.y0&&G.her.y<=SLOT.y1;
+      const laneFrac=G.path.length? G.path.filter(p=>p.y>=LANE.y0&&p.y<=LANE.y1).length/G.path.length : 0;
+      ok = inSlot && laneFrac>=.7; pts=15;
+      msg = ok ? 'BACKCHECK! You beat them to the slot.' : !inSlot ? 'Don\'t chase. Race to OUR SLOT.' : 'Right spot, wrong lane. Skate back through the MIDDLE.';
+      P.result={kind:'bc',ok,inSlot,laneFrac};
+    } else {
+      ok=P.zone_.test(G.her); pts=10;
+      const r=P.role;
+      msg = ok ? ['YES! F1 — you got the puck.','YES! F2 — perfect support.','YES! F3 — the safety.'][r]
+              : ['You were F1 — closest. GO GET IT.','You were F2 — second closest. Back up F1, a stick-and-a-half away.','You were F3 — farthest. Don\'t chase. Stay high, in the middle.'][r];
+      P.result={kind:'pos',ok};
+    }
+    if(ok){ G.streak++; G.score+=pts+(G.streak>=3?5:0); beep('good'); } else { G.streak=0; beep('bad'); }
+    hud(); say(msg, ok?'good':'bad');
+    P.ghost={from:{...G.her}, to: G.phase==='rush' ? {x:32,y:42.5} : P.zone_.ideal, t:0};
+    G.phase='feedback'; G.t=0; P.fbDur = ok?1.7:3.6; if(P.result.kind==='pos' && P.intercept && !ok) P.fbDur=3.0;
+  }
+
+  // ---------- loop ----------
+  let last=performance.now();
+  function loop(now){
+    let dt=Math.min(.05,(now-last)/1000); last=now;
+    if(G.paused) dt=0;
+    const P=G.play;
+    if(G.phase==='read'){ G.readT+=dt; if(G.readT>.7){ G.phase='play'; G.t=0; hush(); } }
+    else if(G.phase==='play'||G.phase==='rush'){
+      G.t+=dt;
+      if(G.mouse){ const d=dist(G.her,G.mouse); if(d>.5){ const step=Math.min(d,SPEED*dt); G.her.x=clamp(G.her.x+(G.mouse.x-G.her.x)/d*step,4,196); G.her.y=clamp(G.her.y+(G.mouse.y-G.her.y)/d*step,4,81); } }
+      if(G.phase==='rush' && !G.paused) G.path.push({x:G.her.x,y:G.her.y});
+      if(G.t>=P.dur) grade();
+    }
+    else if(G.phase==='feedback'){ G.t+=dt; P.ghost.t=Math.min(1,G.t/1.2);
+      if(G.t>=P.fbDur){
+        hush();
+        // on a steal play, the turnover comes right after she sets up — now backcheck
+        if(P.intercept && !P.rushStarted){ P.rushStarted=true; startRush(); }
+        else if(G.n>=PLAYS) endGame(); else startPlay();
+      } }
+    draw();
+    requestAnimationFrame(loop);
+  }
+
+  function lerp(a,b,t){ return {x:a.x+(b.x-a.x)*t, y:a.y+(b.y-a.y)*t}; }
+  function draw(){
+    drawRink();
+    const P=G.play; if(!P) return;
+    const showZones=$('zones').checked;
+    const rushing = G.phase==='rush' || (G.phase==='feedback' && P.result && P.result.kind==='bc');
+    const rt = rushing ? clamp((G.phase==='rush'?G.t:P.dur)/P.dur,0,1) : 0;
+    const e = rt<.5?2*rt*rt:-1+(4-2*rt)*rt;
+
+    // zones / corrections
+    if(rushing){
+      if(showZones || G.phase==='feedback'){ box(0,LANE.y0,200,LANE.y1,'#15202b'); box(SLOT.x0,SLOT.y0,SLOT.x1,SLOT.y1,'#1a9e5c'); }
+    } else if(showZones || (G.phase==='feedback' && !P.result.ok)){ P.zone_.draw(); }
+
+    // teammates & opponents
+    let LW=P.LW,RW=P.RW,D1=P.D1,D2=P.D2, puck=P.puck, opps=P.opps;
+    if(rushing){
+      LW=lerp(P.wRush[0].from,P.wRush[0].to,e); RW=lerp(P.wRush[1].from,P.wRush[1].to,e);
+      D1=lerp(P.dRush[0].from,P.dRush[0].to,e); D2=lerp(P.dRush[1].from,P.dRush[1].to,e);
+      opps=P.opps.map((o,i)=> i<3 ? lerp(P.rush[i].from,P.rush[i].to,e) : o);
+      puck={x:opps[0].x+3,y:opps[0].y+2};
+    }
+    opps.forEach((o,i)=>drawPlayer(o,'#c6cfd9','X',{ink:'#4a5561',stroke:'#8c98a6',r:5, tag: rushing&&i===2?'late one':'', tagColor:'#d7263d'}));
+    drawPlayer(D1,'#23395b','D'); drawPlayer(D2,'#23395b','D');
+    drawPlayer({x:14,y:42.5},'#23395b','G',{r:4.4});
+
+    // forwards with live F ranks (during rush, ranks are hidden — the job is the lane)
+    // ranks are frozen at the moment the puck appeared — that's the question she's answering
+    const fw=[{k:'her',p:G.her,r:P.ranks[0]},{k:'LW',p:LW,r:P.ranks[1]},{k:'RW',p:RW,r:P.ranks[2]}];
+    // F1/F2/F3 stays hidden while she plays — she has to work it out. Revealed in feedback.
+    const reveal = G.phase==='feedback' && P.result.kind==='pos';
+    fw.forEach(f=>{ const isHer=f.k==='her'; drawPlayer(f.p, rushing?'#7a8794':(reveal?FCOL[f.r]:'#e8641b'), isHer?'C':'W', {ring:isHer, tag: reveal?('F'+(f.r+1)):'', tagColor:FCOL[f.r]}); });
+    drawPuck(puck);
+
+    // path trail on backcheck feedback
+    if(G.phase==='feedback' && P.result.kind==='bc' && G.path.length>1){
+      ctx.save(); ctx.lineWidth=3; ctx.lineCap='round';
+      for(let i=1;i<G.path.length;i++){ const a=G.path[i-1],b=G.path[i]; ctx.strokeStyle=(b.y>=LANE.y0&&b.y<=LANE.y1)?'#1a9e5c':'#d7263d'; ctx.beginPath(); ctx.moveTo(X(a.x),Y(a.y)); ctx.lineTo(X(b.x),Y(b.y)); ctx.stroke(); }
+      ctx.restore();
+    }
+    // ghost "should have" on wrong answers
+    if(G.phase==='feedback' && !P.result.ok){
+      const g=P.ghost, gp=lerp(g.from,g.to,g.t<.5?2*g.t*g.t:-1+(4-2*g.t)*g.t);
+      drawArrow(g.from,g.to,'#15202b',2.2);
+      drawPlayer(gp,'#ffffff','C',{ink:'#15202b',stroke:'#15202b',alpha:.85,ring:false,tag:'GO HERE',tagColor:'#1a9e5c'});
+    }
+    // timer
+    if(G.phase==='play'||G.phase==='rush') timerBar(1-G.t/P.dur, G.phase==='rush'?'#d7263d':'#1f6fd0');
+  }
+
+  function setPause(on){
+    if(!G.play || G.phase==='idle' || G.phase==='over') on=false;
+    G.paused=on; $('pauseOv').hidden=!on; $('pauseBtn').textContent=on?'▶ Resume':'❚❚ Pause';
+    if(on) beep('tick');
+  }
+  function endGame(){
+    setPause(false); $('pauseBtn').disabled=true;
+    G.phase='over'; hud();
+    if(G.score>best){ best=G.score; try{ localStorage.setItem('whosf1-best',String(best)); }catch(e){} $('best').textContent=best; }
+    const max=PLAYS*10+40;
+    $('endScore').textContent=G.score;
+    $('endTitle').textContent = G.score>=max*.8?'Center of the year!':G.score>=max*.5?'Solid shift!':'Keep skating!';
+    $('endMsg').textContent = G.score>=max*.8?'You read the puck like a pro. Try it with the zones turned off.':G.score>=max*.5?'Good reads. Remember: farthest from the puck means don\'t chase.':'Every play, ask: am I closest? Second? Farthest? Then move.';
+    $('endOv').hidden=false;
+  }
+  function newGame(){ $('pauseBtn').disabled=false; setPause(false); G.n=0; G.score=0; G.streak=0; G.play=null; hud(); $('startOv').hidden=true; $('endOv').hidden=true; startPlay(); }
+
+  // ---------- input ----------
+  const stage=$('stage');
+  function toRink(ev){ const r=cv.getBoundingClientRect(); const px=(ev.clientX-r.left)/r.width*cv.width, py=(ev.clientY-r.top)/r.height*cv.height; return {x:(px-ox)/S,y:(py-oy)/S}; }
+  stage.addEventListener('pointermove',ev=>{ G.mouse=toRink(ev); });
+  stage.addEventListener('pointerdown',ev=>{
+    if(G.paused) return;
+    if(G.phase==='play'||G.phase==='rush'){ G.mouse=null; grade(); } // click = "I'm in position"
+    else G.mouse=toRink(ev);
+  });
+  stage.addEventListener('pointerleave',()=>{ G.mouse=null; });
+  $('pauseBtn').addEventListener('click',()=>setPause(!G.paused));
+  document.addEventListener('keydown',ev=>{ if(ev.target.tagName==='INPUT'||ev.target.tagName==='BUTTON') return; if(ev.key===' '||ev.key.toLowerCase()==='p'){ ev.preventDefault(); if(!$('pauseBtn').disabled) setPause(!G.paused); } });
+  $('startBtn').addEventListener('click',()=>{ beep('tick'); newGame(); });
+  $('againBtn').addEventListener('click',()=>{ beep('tick'); newGame(); });
+
+  // first frame at rest: a sample layout behind the start overlay
+  G.play=makePlay(); G.her={...G.play.her};
+  hud(); requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>

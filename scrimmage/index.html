@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Center Scrimmage</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;800&family=Barlow:wght@400;600&display=swap">
+<style>
+  :root{
+    --bg:#f2f5f8; --panel:#ffffff; --ink:#15202b; --muted:#5b6673; --line:#d5dde6;
+    --accent:#d7263d; --good:#1a9e5c; --f1:#d7263d; --f2:#e39b00; --f3:#1f6fd0; --d:#23395b;
+  }
+  @media (prefers-color-scheme: dark){ :root:not([data-theme="light"]){ --bg:#0f151b; --panel:#182028; --ink:#eef2f6; --muted:#9aa7b4; --line:#2a3541; } }
+  :root[data-theme="dark"]{ --bg:#0f151b; --panel:#182028; --ink:#eef2f6; --muted:#9aa7b4; --line:#2a3541; }
+  *{box-sizing:border-box}
+  body{margin:0;background:var(--bg);color:var(--ink);font-family:Barlow,"Segoe UI",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.4;-webkit-user-select:none;user-select:none}
+  .wrap{max-width:980px;margin:0 auto;padding:16px 14px 32px}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:10px}
+  h1{font-family:"Barlow Condensed",Impact,"Arial Narrow",sans-serif;font-weight:800;font-size:40px;letter-spacing:.5px;margin:0;line-height:1;text-transform:uppercase}
+  header p{margin:0;color:var(--muted);font-size:15px}
+  .hud{display:grid;grid-template-columns:auto auto auto auto 1fr;gap:22px;align-items:end;margin-bottom:8px}
+  .hud .k{font-family:"Barlow Condensed",sans-serif;font-weight:600;font-size:13px;letter-spacing:1px;text-transform:uppercase;color:var(--muted)}
+  .hud .v{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:34px;line-height:1;font-variant-numeric:tabular-nums}
+  .hud .v.good{color:var(--good)}
+  .hud .v small{font-size:16px;color:var(--muted);font-weight:600;margin:0 4px}
+  .coach{justify-self:end;text-align:right;max-width:340px}
+  .coach .v{font-size:20px;font-weight:700;color:var(--accent);min-height:24px;text-transform:uppercase}
+  .stage{position:relative;background:var(--panel);border:1px solid var(--line);border-radius:14px;overflow:hidden;cursor:crosshair;touch-action:none}
+  canvas{display:block;width:100%;height:auto}
+  .banner{position:absolute;left:0;right:0;top:0;padding:10px 16px;text-align:center;pointer-events:none;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:32px;text-transform:uppercase;letter-spacing:.5px;color:#fff;text-shadow:0 1px 2px rgba(0,0,0,.35);background:linear-gradient(rgba(21,32,43,.55),rgba(21,32,43,0));opacity:0;transition:opacity .15s}
+  .banner.show{opacity:1} .banner.good{color:#9df0c0} .banner.bad{color:#ffb3bd} .banner.goal{color:#ffd400}
+  .overlay{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;background:rgba(21,32,43,.74);color:#fff;text-align:center;padding:20px}
+  .overlay[hidden]{display:none}
+  .overlay .box{max-width:560px}
+  .overlay h2{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:44px;margin:0 0 6px;line-height:1;text-transform:uppercase}
+  .overlay p{margin:0 0 14px;font-size:18px;text-wrap:balance}
+  .overlay .big{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:64px;line-height:1;margin:6px 0 4px;font-variant-numeric:tabular-nums}
+  .btn{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:22px;letter-spacing:.5px;text-transform:uppercase;border:0;background:var(--accent);color:#fff;border-radius:10px;padding:12px 26px;cursor:pointer}
+  .btn.small{font-size:17px;padding:7px 14px;background:var(--ink);color:var(--panel)} .btn.small:disabled{opacity:.4;cursor:default}
+  .btn:focus-visible,input:focus-visible{outline:3px solid var(--f3);outline-offset:2px}
+  .pause{position:absolute;inset:0;display:flex;align-items:flex-end;justify-content:center;padding:0 0 26px;pointer-events:none;background:rgba(21,32,43,.18)}
+  .pause[hidden]{display:none}
+  .pause div{background:rgba(21,32,43,.9);color:#fff;border-radius:12px;padding:10px 18px;max-width:560px;text-align:center}
+  .pause b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:30px;letter-spacing:1px;line-height:1.1} .pause span{font-size:15px}
+  .bar{display:flex;gap:16px;align-items:center;flex-wrap:wrap;margin-top:10px;color:var(--muted);font-size:15px}
+  .bar label{display:flex;align-items:center;gap:8px;cursor:pointer} .bar input[type=checkbox]{width:18px;height:18px}
+  .rules{margin-top:18px;display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:10px}
+  .rule{border:1px solid var(--line);border-radius:10px;padding:10px 12px;font-size:14px;color:var(--muted)}
+  .rule b{display:block;font-family:"Barlow Condensed",sans-serif;font-size:18px;text-transform:uppercase;letter-spacing:.4px;margin-bottom:2px}
+  .rule.f1 b{color:var(--f1)} .rule.f2 b{color:var(--f2)} .rule.f3 b{color:var(--f3)} .rule.bc b{color:var(--ink)}
+  @media (max-width:640px){ h1{font-size:32px} .hud{grid-template-columns:auto auto auto;gap:12px} .coach{grid-column:1/-1;justify-self:start;text-align:left} .hud .v{font-size:26px} .banner{font-size:22px} }
+
+  .home{display:inline-block;font-family:"Barlow Condensed",sans-serif;font-weight:700;font-size:13px;letter-spacing:.8px;text-transform:uppercase;color:#1f6fd0;text-decoration:none;margin-bottom:4px}
+  .home:hover{text-decoration:underline}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <a class="home" href="../">← IceT home</a>
+  <header>
+    <h1>Center Scrimmage</h1>
+    <p>Mouse to skate. With the puck: <b>click a teammate</b> to pass, <b>click their net</b> to shoot. Without it: get close and <b>click the player who has it</b> to battle. Our net is on the left.</p>
+  </header>
+
+  <div class="hud">
+    <div><div class="k">Score</div><div class="v"><span id="gUs">0</span><small>US</small>–<small>THEM</small><span id="gThem">0</span></div></div>
+    <div><div class="k">Clock</div><div class="v" id="clock">3:00</div></div>
+    <div><div class="k">Coach points</div><div class="v good" id="cp">0</div></div>
+    <div><div class="k">Backchecks</div><div class="v" id="bc">0</div></div>
+    <div class="coach"><div class="k">Coach says</div><div class="v" id="coach"></div></div>
+  </div>
+
+  <div class="stage" id="stage">
+    <canvas id="c" width="1030" height="470"></canvas>
+    <div class="banner" id="banner"></div>
+    <div class="pause" id="pauseOv" hidden><div><b>PAUSED</b><span>Talk it through: who has the puck? Are you F1, F2 or F3? Where should you be? Space bar or Resume to keep going.</span></div></div>
+    <div class="overlay" id="startOv">
+      <div class="box">
+        <h2>Center Scrimmage</h2>
+        <p>A real 5-on-5 game. You're the center with the black ring. Skate with the mouse. Get the puck, pass it, shoot it. Get close to whoever has it and click them to battle for it. When the other team has it, figure out if you're F1, F2 or F3 and be in the right spot. Lose it in their end? <b>Backcheck.</b> Coach points come from being in the right place, not from goals.</p>
+        <button class="btn" id="startBtn">Drop the puck · 3 min</button>
+      </div>
+    </div>
+    <div class="overlay" id="endOv" hidden>
+      <div class="box">
+        <h2 id="endTitle">Final</h2>
+        <div class="big" id="endLine" style="font-size:96px">–</div>
+        <p id="endMsg"></p>
+        <button class="btn" id="againBtn">Play again</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="bar">
+    <button class="btn small" id="pauseBtn" disabled>❚❚ Pause</button>
+    <label><input type="checkbox" id="zones"> Show my zone (training wheels)</label>
+    <label><input type="checkbox" id="tips" checked> Coach tips when I'm wrong</label>
+    <label><input type="checkbox" id="sound" checked> Sound</label>
+    <label>Game speed <input type="range" id="speed" min="0.2" max="1.3" step="0.1" value="0.5" style="width:140px"> <b id="speedV" style="font-variant-numeric:tabular-nums">0.5×</b></label>
+  </div>
+
+  <div class="rules">
+    <div class="rule f1"><b>F1 · closest</b>They have it and you're closest? Go get it. Skate right at the puck.</div>
+    <div class="rule f2"><b>F2 · second</b>Back up F1, a stick-and-a-half away, on the inside.</div>
+    <div class="rule f3"><b>F3 · farthest</b>Be the safety. High, in the middle, between the puck and our net.</div>
+    <div class="rule bc"><b>Backcheck</b>Lost it in their end? Don't chase. Middle lane, race to our slot.</div>
+    <div class="rule bc"><b>Offside</b>The puck goes over their blue line first. If you're already in, the whistle blows.</div>
+  </div>
+</div>
+
+<script>
+(function(){
+  'use strict';
+  // ---------- canvas & rink ----------
+  const cv=document.getElementById('c'), ctx=cv.getContext('2d');
+  const W=200,H=85,PAD=3, S=cv.width/(W+PAD*2), ox=PAD*S, oy=PAD*S;
+  const X=x=>ox+x*S, Y=y=>oy+y*S;
+  const $=id=>document.getElementById(id);
+  const banner=$('banner'), coachEl=$('coach');
+  const FCOL=['#d7263d','#e39b00','#1f6fd0'];
+  const NET={ours:11, theirs:189, y0:38, y1:47};
+  const SLOT={x0:20,x1:44,y0:30,y1:55}, LANE={y0:24,y1:61};
+  const PERIOD=180;
+
+  const rnd=(a,b)=>a+Math.random()*(b-a), clamp=(v,a,b)=>Math.max(a,Math.min(b,v));
+  const dist=(a,b)=>Math.hypot(a.x-b.x,a.y-b.y);
+  function segDist(p,a,b){ const dx=b.x-a.x,dy=b.y-a.y,l2=dx*dx+dy*dy||1; const t=clamp(((p.x-a.x)*dx+(p.y-a.y)*dy)/l2,0,1); return Math.hypot(p.x-(a.x+dx*t),p.y-(a.y+dy*t)); }
+
+  // ---------- audio ----------
+  let ac=null;
+  function beep(kind){
+    if(!$('sound').checked) return;
+    try{ ac=ac||new (window.AudioContext||window.webkitAudioContext)(); const o=ac.createOscillator(),g=ac.createGain(); o.connect(g); g.connect(ac.destination); const t=ac.currentTime;
+      const seq={good:[[660,0],[880,.09]],bad:[[220,0],[160,.12]],goal:[[523,0],[659,.12],[784,.24],[1046,.36]],horn:[[180,0]],alarm:[[520,0],[390,.1],[520,.2]],tick:[[440,0]]}[kind];
+      o.type= kind==='bad'?'square': kind==='horn'?'sawtooth': kind==='alarm'?'sawtooth':'sine';
+      seq.forEach(([f,dt])=>o.frequency.setValueAtTime(f,t+dt));
+      const len= kind==='goal'?.7: kind==='horn'?1.2: kind==='alarm'?.45: kind==='tick'?.1:.3;
+      g.gain.setValueAtTime(kind==='horn'?.15:.1,t); g.gain.exponentialRampToValueAtTime(.001,t+len); o.start(t); o.stop(t+len);
+    }catch(e){}
+  }
+
+  // ---------- players ----------
+  // team 0 = us (attack to the right), team 1 = them (attack to the left)
+  const P=[]; let her=null;
+  function mk(team,role){ const p={team,role,x:100,y:42.5,vx:0,vy:0,tx:100,ty:42.5,spd:role==='G'?30:(team===0?50:47),user:false,lastRelease:-9,decide:0}; P.push(p); return p; }
+  ['G','D1','D2','LW','C','RW'].forEach(r=>mk(0,r)); ['G','D1','D2','LW','C','RW'].forEach(r=>mk(1,r));
+  her=P.find(p=>p.team===0&&p.role==='C'); her.user=true; her.spd=58;
+  const team=t=>P.filter(p=>p.team===t&&p.role!=='G'), goalie=t=>P.find(p=>p.team===t&&p.role==='G');
+  const dir=t=>t===0?1:-1, ownNet=t=>t===0?NET.ours:NET.theirs, attackNet=t=>t===0?NET.theirs:NET.ours;
+
+  const puck={x:100,y:42.5,vx:0,vy:0,holder:null,lastHolder:null};
+  const G={ phase:'idle', paused:false, t:0, clock:PERIOD, gUs:0, gThem:0, cp:0, bcs:0, freeze:0, faceoffT:0, mouse:null,
+            poss:null, lastPossTeam:null, wrongT:0, goodT:0, awardT:0, tip:'', tipT:0, bc:null, bcShow:0, zone:null, ghost:null };
+
+  function faceoff(cx=100,cy=42.5){
+    const cy1=clamp(cy-16,8,77), cy2=clamp(cy+16,8,77);
+    const f=[[0,'G',13,42.5],[0,'D1',clamp(cx-30,16,184),clamp(cy-14,8,77)],[0,'D2',clamp(cx-30,16,184),clamp(cy+14,8,77)],[0,'LW',clamp(cx-12,16,184),cy1],[0,'C',cx-5,cy],[0,'RW',clamp(cx-12,16,184),cy2],
+             [1,'G',187,42.5],[1,'D1',clamp(cx+30,16,184),clamp(cy-14,8,77)],[1,'D2',clamp(cx+30,16,184),clamp(cy+14,8,77)],[1,'LW',clamp(cx+12,16,184),cy1],[1,'C',cx+5,cy],[1,'RW',clamp(cx+12,16,184),cy2]];
+    f.forEach(([t,r,x,y])=>{ const p=P.find(q=>q.team===t&&q.role===r); p.x=x;p.y=y;p.vx=p.vy=0;p.tx=x;p.ty=y; });
+    puck.x=cx; puck.y=cy; puck.vx=puck.vy=0; puck.holder=null; puck.lastHolder=null; G.zoneEntered={0:false,1:false}; G.prevPx=cx;
+    G.phase='faceoff'; G.faceoffT=1.2; G.mouse=null; G.bc=null; G.wrongT=0; G.goodT=0; G.zone=null; G.ghost=null;
+  }
+  function dropPuck(){
+    G.phase='play';
+    const winner=Math.random()<.5?0:1; const d=P.find(q=>q.team===winner&&q.role==='D1');
+    const a=Math.atan2(d.y-puck.y,d.x-puck.x); puck.vx=Math.cos(a)*55; puck.vy=Math.sin(a)*55;
+    say('DROP!','',.6); beep('tick');
+  }
+
+  // ---------- AI targets ----------
+  function possession(){ return puck.holder ? puck.holder.team : null; }
+  function targetsFor(t){
+    const d=dir(t), own=ownNet(t), att=attackNet(t), poss=possession(), skaters=team(t), opp=team(1-t);
+    const K=puck.holder;
+    const fw=skaters.filter(p=>p.role!=='D1'&&p.role!=='D2'), D=[skaters.find(p=>p.role==='D1'),skaters.find(p=>p.role==='D2')];
+    const px=puck.x, py=puck.y;
+    const inAttackZone = d>0 ? px>125 : px<75;
+    const inOwnZone = d>0 ? px<75 : px>125;
+    if(poss===t){ // offense
+      fw.forEach(p=>{
+        if(p===K) return;
+        if(p.role==='LW'){ p.tx=clamp(px+18*d,15,185); p.ty=15; }
+        else if(p.role==='RW'){ p.tx=clamp(px+18*d,15,185); p.ty=70; }
+        else { p.tx = inAttackZone ? att-22*d : clamp(px+10*d,15,185); p.ty=42.5; }
+        // a winger carrying: the other forwards fill the middle
+        if(K && K.role!=='C' && p.role==='C'){ p.tx = inAttackZone ? att-22*d : clamp(px+6*d,15,185); }
+      });
+      if(!inAttackZone){ const line = d>0?123:77; fw.forEach(p=>{ if(p!==K) p.tx = d>0?Math.min(p.tx,line):Math.max(p.tx,line); }); }
+      D[0].tx = inAttackZone ? att-62*d : clamp(px-28*d,15,185); D[0].ty=24;
+      D[1].tx = inAttackZone ? att-62*d : clamp(px-28*d,15,185); D[1].ty=61;
+      if(K && (K.role==='D1'||K.role==='D2')){ const o=K.role==='D1'?D[1]:D[0]; o.tx=clamp(K.x-6*d,15,185); }
+    } else { // defense (or loose puck)
+      const ranked=[...fw].sort((a,b)=>dist(a,puck)-dist(b,puck));
+      ranked.forEach((p,i)=>{
+        if(i===0){ p.tx=px; p.ty=py; }
+        else if(i===1){ if(inOwnZone){ p.tx=own+22*d; p.ty=42.5; } else { p.tx=clamp(px-14*d,10,190); p.ty=py+(42.5-py)*.5; } }
+        else { if(inOwnZone){ p.tx=own+48*d; p.ty=42.5; } else { p.tx=clamp(px-32*d,10,190); p.ty=42.5; } }
+      });
+      if(poss===null){ // loose puck: nearest skater of all chases, D stay honest
+        const nearest=[...skaters].sort((a,b)=>dist(a,puck)-dist(b,puck))[0]; nearest.tx=px; nearest.ty=py;
+      }
+      // D mark the two attackers nearest our net (goal side)
+      const threats=[...opp].sort((a,b)=>Math.abs(a.x-own)-Math.abs(b.x-own)).slice(0,2);
+      D.forEach((dp,i)=>{ const a=threats[i]; if(a){ const gx=own, gy=42.5; const dx=gx-a.x, dy=gy-a.y, l=Math.hypot(dx,dy)||1; dp.tx=a.x+dx/l*5; dp.ty=a.y+dy/l*5; } else { dp.tx=own+16*d; dp.ty=i?58:27; } });
+      // never let D wander past the far blue line
+      D.forEach(dp=>{ dp.tx = d>0 ? Math.min(dp.tx,118) : Math.max(dp.tx,82); });
+    }
+    const g=goalie(t); g.tx=own+2*d; g.ty=clamp(py,36.5,48.5);
+  }
+
+  function carrierAI(K,dt){
+    const t=K.team, d=dir(t), att=attackNet(t), opp=team(1-t);
+    const netPt={x:att,y:42.5};
+    // steer toward the net, sliding away from the nearest defender
+    const near=[...opp].sort((a,b)=>dist(a,K)-dist(b,K))[0];
+    let tx=att-10*d, ty=42.5;
+    if(near && dist(near,K)<14){ const away=Math.sign(K.y-near.y)||(Math.random()<.5?1:-1); ty=clamp(K.y+away*22,10,75); tx=clamp(K.x+18*d,10,190); }
+    K.tx=tx; K.ty=ty;
+    K.decide-=dt; if(K.decide>0) return;
+    K.decide=.3;
+    const dn=dist(K,netPt), pressured = near && dist(near,K)<9;
+    const mates=team(t).filter(p=>p!==K);
+    const open=mates.filter(m=>opp.every(o=>dist(o,m)>8 && segDist(o,K,m)>6) && (m.x-K.x)*d>-15);
+    if(dn<38 && Math.random()<.45){ shoot(K); return; }
+    if(pressured && open.length && Math.random()<.7){ pass(K,open.sort((a,b)=>dist(b,netPt)-dist(a,netPt))[0]); return; }
+    if(open.length && Math.random()<.15){ const ahead=open.filter(m=>(m.x-K.x)*d>8); if(ahead.length){ pass(K,ahead[Math.floor(Math.random()*ahead.length)]); } }
+  }
+  function release(K){ puck.holder=null; puck.lastHolder=K; K.lastRelease=G.t; }
+  function pass(K,R){ const lead={x:R.x+R.vx*.35,y:R.y+R.vy*.35}; const a=Math.atan2(lead.y-K.y,lead.x-K.x); const v=clamp(70+dist(K,lead)*.6,70,120); release(K); puck.x=K.x+Math.cos(a)*5; puck.y=K.y+Math.sin(a)*5; puck.vx=Math.cos(a)*v; puck.vy=Math.sin(a)*v; if(K===her) beep('tick'); }
+  function shoot(K,ty){ const att=attackNet(K.team); const y=ty!==undefined?ty:rnd(NET.y0+1,NET.y1-1); const a=Math.atan2(y-K.y,att-K.x); release(K); puck.x=K.x+Math.cos(a)*5; puck.y=K.y+Math.sin(a)*5; puck.vx=Math.cos(a)*135; puck.vy=Math.sin(a)*135; }
+
+  // ---------- physics ----------
+  function stepPlayers(dt){
+    P.forEach(p=>{
+      let tx=p.tx, ty=p.ty;
+      if(p.user){ if(G.mouse){ tx=G.mouse.x; ty=G.mouse.y; } else { tx=p.x; ty=p.y; } if(p.stumble>0) p.stumble-=dt; }
+      const dx=tx-p.x, dy=ty-p.y, dd=Math.hypot(dx,dy);
+      let vx=0,vy=0; if(dd>.6){ let sp=p.spd; if(p.user&&p.stumble>0) sp*=.35; const s=Math.min(sp, dd/Math.max(dt,.001)); vx=dx/dd*s; vy=dy/dd*s; }
+      // separation from teammates (not goalies)
+      if(p.role!=='G'){ P.forEach(q=>{ if(q===p||q.role==='G') return; const d=dist(p,q); if(d<6&&d>0){ vx+=(p.x-q.x)/d*(6-d)*6; vy+=(p.y-q.y)/d*(6-d)*6; } }); }
+      p.vx=vx; p.vy=vy; p.x=clamp(p.x+vx*dt,2,198); p.y=clamp(p.y+vy*dt,2,83);
+      if(p.role==='G'){ p.x=ownNet(p.team)+2*dir(p.team); p.y=clamp(p.y,36,49); }
+    });
+  }
+  function stepPuck(dt){
+    if(puck.holder){ const K=puck.holder; const l=Math.hypot(K.vx,K.vy); const ux=l>1?K.vx/l:dir(K.team), uy=l>1?K.vy/l:0; puck.x=K.x+ux*4.5; puck.y=K.y+uy*4.5; puck.vx=K.vx; puck.vy=K.vy; return; }
+    puck.x+=puck.vx*dt; puck.y+=puck.vy*dt;
+    const f=Math.max(0,1-1.1*dt); puck.vx*=f; puck.vy*=f;
+    // goals & saves
+    for(const t of [0,1]){ const gx=ownNet(t), d=dir(t); const crossing = d>0 ? puck.x<=gx : puck.x>=gx;
+      if(crossing && puck.y>NET.y0-1 && puck.y<NET.y1+1 && Math.abs(puck.vx)>5){
+        const g=goalie(t); if(Math.abs(puck.y-g.y)<5.5 && Math.random()<.78){ // save: kick it to a corner
+          puck.x=gx+6*d; puck.vx=45*d; puck.vy=(puck.y<42.5?-1:1)*40; say('SAVE!','',.8); continue; }
+        goal(1-t); return; } }
+    if(puck.x<1){puck.x=1;puck.vx=Math.abs(puck.vx)*.6;} if(puck.x>199){puck.x=199;puck.vx=-Math.abs(puck.vx)*.6;}
+    if(puck.y<1){puck.y=1;puck.vy=Math.abs(puck.vy)*.6;} if(puck.y>84){puck.y=84;puck.vy=-Math.abs(puck.vy)*.6;}
+    // pickup
+    const sp=Math.hypot(puck.vx,puck.vy);
+    for(const p of P){ if(p.role==='G'){ if(dist(p,puck)<5.5 && sp<60){ puck.vx=45*dir(p.team); puck.vy=(Math.random()<.5?-1:1)*45; } continue; }
+      const r = p.user?5:4.5; if(dist(p,puck)<r && (p!==puck.lastHolder || G.t-p.lastRelease>.45)){ puck.holder=p; puck.vx=puck.vy=0; if(p===her) beep('tick'); break; } }
+  }
+  function stepSteals(dt){
+    const K=puck.holder; if(!K) return;
+    team(1-K.team).forEach(o=>{ if(dist(o,K)<5.5){ const rate = K.user?.5 : (o.user?1.4:.9); if(Math.random()<rate*dt){ release(K); puck.holder=o; puck.x=o.x; puck.y=o.y; if(o===her) beep('good'); } } });
+  }
+  // click on the opponent with the puck = stick battle. Works only within reach; win most of them, lose a step when you miss.
+  function battle(K){
+    if(G.t-(her.battleT||-9)<.7) return;
+    her.battleT=G.t;
+    if(dist(her,K)>9){ say('GET CLOSER!','',.6); return; }
+    G.fx={x:K.x,y:K.y,t:.35};
+    if(Math.random()<.45){ release(K); puck.holder=her; puck.x=her.x; puck.y=her.y; say('STOLE IT!','good',.9); beep('good'); G.cp+=3; hud(); }
+    else { say('Missed — stay on him!','bad',.8); beep('bad'); her.stumble=.5; }
+  }
+  // offside: the puck crosses the attacking blue line while an attacker is already fully across it
+  function checkOffside(){
+    const px=puck.x, prev=G.prevPx; G.prevPx=px;
+    const attacker = puck.holder ? puck.holder.team : (puck.lastHolder ? puck.lastHolder.team : null);
+    if(attacker===null) return;
+    const line = attacker===0 ? 125 : 75, d=dir(attacker);
+    const crossedIn = d>0 ? (prev<line && px>=line) : (prev>line && px<=line);
+    const inZone = d>0 ? px>line : px<line;
+    if(!inZone) G.zoneEntered[attacker]=false;
+    if(crossedIn && !G.zoneEntered[attacker]){
+      G.zoneEntered[attacker]=true;
+      const early = team(attacker).filter(p=>p!==puck.holder && (d>0 ? p.x-5>line : p.x+5<line));
+      if(early.length){
+        const who = early.includes(her) ? 'YOU were over the line' : (attacker===0?'a teammate was over the line':'they were over the line');
+        say('OFFSIDE — '+who, attacker===0?'bad':'', 2); beep('bad');
+        if(early.includes(her)) showTip('Offside! Wait at the blue line until the puck goes in first.');
+        G.freeze=1.6; G.phase='whistle'; G.nextFO={x: attacker===0?120:80, y: puck.y<42.5?22:63};
+        puck.holder=null; puck.vx=puck.vy=0;
+      }
+    }
+  }
+  function goal(t){
+    if(t===0){ G.gUs++; say('GOAL! 🎉','goal',2.2); } else { G.gThem++; say('They scored.','bad',2.2); }
+    beep(t===0?'goal':'bad'); hud(); G.freeze=2.2; G.phase='goal';
+  }
+
+  // ---------- coaching ----------
+  function zoneFor(role){
+    const p=puck;
+    if(role===0) return { name:'F1', test:q=>dist(q,p)<=12, ideal:{x:p.x,y:p.y}, draw(){ circ(p.x,p.y,12,FCOL[0]); },
+      tip:'You\'re F1 — closest. GO GET IT.' };
+    if(role===1) return { name:'F2', test:q=>{const d=dist(q,p);return d>12&&d<=30&&q.x<=p.x+6;},
+      ideal:(()=>{const dx=(p.x-14)-p.x, dy=42.5-p.y, l=Math.hypot(dx,dy)||1; return {x:clamp(p.x+dx/l*19,8,192),y:clamp(p.y+dy/l*19,6,79)};})(),
+      draw(){ ring(p.x,p.y,12,30,FCOL[1],p.x+6); }, tip:'You\'re F2 — second. Back up F1, stick-and-a-half away.' };
+    let x0,x1; if(p.x<70){x0=44;x1=72;} else { x1=clamp(p.x-18,50,180); x0=clamp(p.x-46,30,x1-14); }
+    return { name:'F3', test:q=>q.x>=x0&&q.x<=x1&&q.y>=22&&q.y<=63, ideal:{x:(x0+x1)/2,y:42.5}, draw(){ box(x0,22,x1,63,FCOL[2]); },
+      tip:'You\'re F3 — farthest. DON\'T CHASE. Stay high in the middle.' };
+  }
+  function supportZone(){ // we have the puck and it isn't her: get open ahead of the puck, in the middle
+    const K=puck.holder, tx = puck.x>125 ? 167 : clamp(puck.x+12,15,185), ty=42.5;
+    return { name:'open', test:q=>dist(q,{x:tx,y:ty})<=18 && team(1).every(o=>dist(o,q)>6), ideal:{x:tx,y:ty}, draw(){ circ(tx,ty,18,'#1a9e5c'); }, tip:'We have it — GET OPEN in the middle, ahead of the puck.' };
+  }
+  function coach(dt){
+    const poss=possession();
+    // backcheck trigger: we had it in their end, now they do
+    if(G.lastPossTeam===0 && poss===1 && puck.x>118 && !G.bc){ G.bc={t:0,path:[],done:false}; say('LOST IT — BACKCHECK!','bad',1.4); beep('alarm'); }
+    if(poss!==null) G.lastPossTeam=poss;
+    if(G.bc){
+      const b=G.bc; b.t+=dt; b.path.push({x:her.x,y:her.y});
+      const inSlot=her.x>=SLOT.x0&&her.x<=SLOT.x1&&her.y>=SLOT.y0&&her.y<=SLOT.y1;
+      const laneFrac=b.path.filter(q=>q.y>=LANE.y0&&q.y<=LANE.y1).length/b.path.length;
+      if(poss===0){ G.bc=null; return; } // we got it back — no grade
+      if(inSlot){ if(laneFrac>=.7){ G.cp+=15; G.bcs++; say('BACKCHECK! +15','good',1.4); beep('good'); } else { say('Right spot, wrong lane — skate back through the MIDDLE.','bad',2.2); beep('bad'); G.bcShow=2.5; }
+        G.bc=null; hud(); return; }
+      if(b.t>6.5){ say('Don\'t chase — race to OUR SLOT.','bad',2.2); beep('bad'); G.bcShow=2.5; G.bc=null; return; }
+      G.zone=null; return; // while backchecking, the only job is the lane
+    }
+    let z=null;
+    if(poss===1 || poss===null){ const fw=team(0).filter(p=>p.role==='C'||p.role==='LW'||p.role==='RW'); const rank=[...fw].sort((a,b)=>dist(a,puck)-dist(b,puck)).indexOf(her); z=zoneFor(rank); }
+    else if(puck.holder!==her){ z=supportZone(); }
+    else { z=null; G.wrongT=0; if(G.t-her.holdSince>5 && !G.holdTip){ G.holdTip=true; showTip('You\'ve had it a while — pass or shoot.'); } }
+    if(puck.holder===her && !her.holdSince) her.holdSince=G.t; if(puck.holder!==her){ her.holdSince=0; G.holdTip=false; }
+    G.zone=z; if(!z) return;
+    G.zoneT=(G.zoneT||0)+dt;
+    if(z.test(her)){ G.goodT+=dt; G.wrongT=0; G.awardT+=dt; if(G.awardT>=1){ G.awardT-=1; G.cp+=2; hud(); } if(G.tipZone===z.name){ G.tipZone=null; coachEl.textContent=''; } }
+    else { G.wrongT+=dt; G.awardT=0; if(G.wrongT>2 && G.tipZone!==z.name){ G.tipZone=z.name; showTip(z.tip); beep('bad'); } }
+  }
+  function showTip(s){ if(!$('tips').checked) return; coachEl.textContent=s; G.tipT=4; }
+
+  // ---------- drawing ----------
+  function circ(x,y,r,c){ ctx.save(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.globalAlpha=.13; ctx.beginPath(); ctx.arc(X(x),Y(y),r*S,0,7); ctx.fill(); ctx.globalAlpha=.9; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.stroke(); ctx.restore(); }
+  function ring(x,y,r0,r1,c,maxX){ ctx.save(); ctx.beginPath(); ctx.rect(0,0,X(maxX),cv.height); ctx.clip(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.globalAlpha=.13; ctx.beginPath(); ctx.arc(X(x),Y(y),r1*S,0,7); ctx.arc(X(x),Y(y),r0*S,0,7,true); ctx.fill('evenodd'); ctx.globalAlpha=.9; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.beginPath(); ctx.arc(X(x),Y(y),r1*S,0,7); ctx.stroke(); ctx.beginPath(); ctx.arc(X(x),Y(y),r0*S,0,7); ctx.stroke(); ctx.restore(); }
+  function box(x0,y0,x1,y1,c){ ctx.save(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.globalAlpha=.13; ctx.fillRect(X(x0),Y(y0),(x1-x0)*S,(y1-y0)*S); ctx.globalAlpha=.9; ctx.lineWidth=2; ctx.setLineDash([6,4]); ctx.strokeRect(X(x0),Y(y0),(x1-x0)*S,(y1-y0)*S); ctx.restore(); }
+  function rrect(x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function drawRink(){
+    ctx.clearRect(0,0,cv.width,cv.height); ctx.save();
+    rrect(X(0),Y(0),W*S,H*S,24*S); ctx.fillStyle='#e9f1f8'; ctx.fill(); ctx.lineWidth=2; ctx.strokeStyle='#9fb0c2'; ctx.stroke(); ctx.clip();
+    const L=(x,c,w)=>{ ctx.strokeStyle=c; ctx.lineWidth=w; ctx.beginPath(); ctx.moveTo(X(x),Y(0)); ctx.lineTo(X(x),Y(H)); ctx.stroke(); };
+    L(100,'#d7263d',S*1.1); L(75,'#1f6fd0',S*1.1); L(125,'#1f6fd0',S*1.1); L(11,'#d7263d',1.5); L(189,'#d7263d',1.5);
+    ctx.lineWidth=1.5; const C=(x,y,r,c)=>{ ctx.strokeStyle=c; ctx.beginPath(); ctx.arc(X(x),Y(y),r*S,0,7); ctx.stroke(); };
+    C(100,42.5,15,'#1f6fd0'); [[31,22],[31,63],[169,22],[169,63]].forEach(([x,y])=>{ C(x,y,15,'#d7263d'); ctx.fillStyle='#d7263d'; ctx.beginPath(); ctx.arc(X(x),Y(y),1.2*S,0,7); ctx.fill(); });
+    ctx.strokeStyle='#1f6fd0'; ctx.beginPath(); ctx.arc(X(11),Y(42.5),7*S,-Math.PI/2,Math.PI/2); ctx.stroke(); ctx.beginPath(); ctx.arc(X(189),Y(42.5),7*S,Math.PI/2,Math.PI*1.5); ctx.stroke();
+    ctx.fillStyle='#15202b'; ctx.fillRect(X(7),Y(38),4*S,9*S); ctx.fillRect(X(189),Y(38),4*S,9*S);
+    ctx.restore();
+    ctx.fillStyle='#5b6673'; ctx.font=`700 ${3.4*S}px "Barlow Condensed", sans-serif`; ctx.textAlign='center'; ctx.fillText('OUR NET',X(11),Y(-0.9)); ctx.fillText('THEIR NET',X(189),Y(-0.9));
+  }
+  function drawPlayer(p,fill,label,o={}){ const r=(o.r||5.2)*S; ctx.save(); ctx.globalAlpha=o.alpha??1; ctx.beginPath(); ctx.arc(X(p.x),Y(p.y),r,0,7); ctx.fillStyle=fill; ctx.fill(); ctx.lineWidth=o.stroke?2:1.4; ctx.strokeStyle=o.stroke||'#fff'; ctx.stroke();
+    if(o.ring){ ctx.beginPath(); ctx.arc(X(p.x),Y(p.y),r+2.2,0,7); ctx.lineWidth=3.2; ctx.strokeStyle='#15202b'; ctx.stroke(); }
+    ctx.fillStyle=o.ink||'#fff'; ctx.font=`800 ${5.6*S}px "Barlow Condensed", sans-serif`; ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,X(p.x),Y(p.y)+1);
+    if(o.tag){ ctx.fillStyle=o.tagColor||'#15202b'; ctx.font=`800 ${4.8*S}px "Barlow Condensed", sans-serif`; ctx.textBaseline='alphabetic'; ctx.fillText(o.tag,X(p.x),Y(p.y)-r-4); } ctx.restore(); }
+  function drawPuck(){ const on=(performance.now()%700)<350; ctx.save(); ctx.beginPath(); ctx.arc(X(puck.x),Y(puck.y),(on?7:5)*S,0,7); ctx.fillStyle='#ffd400'; ctx.globalAlpha=on?.5:.18; ctx.fill(); ctx.globalAlpha=1; ctx.beginPath(); ctx.arc(X(puck.x),Y(puck.y),2.8*S,0,7); ctx.fillStyle='#15202b'; ctx.fill(); ctx.lineWidth=2.5; ctx.strokeStyle=on?'#ffd400':'#fff'; ctx.stroke(); ctx.restore(); }
+  function drawArrow(a,b,c,w){ const d=dist(a,b); if(d<1) return; const ux=(b.x-a.x)/d, uy=(b.y-a.y)/d; ctx.save(); ctx.strokeStyle=c; ctx.fillStyle=c; ctx.lineWidth=w; ctx.setLineDash([7,5]); ctx.beginPath(); ctx.moveTo(X(a.x),Y(a.y)); ctx.lineTo(X(b.x-ux*7),Y(b.y-uy*7)); ctx.stroke(); ctx.setLineDash([]); const hx=X(b.x-ux*6.5), hy=Y(b.y-uy*6.5), s=2.6*S; ctx.beginPath(); ctx.moveTo(hx+ux*s,hy+uy*s); ctx.lineTo(hx-uy*s*.6,hy+ux*s*.6); ctx.lineTo(hx+uy*s*.6,hy-ux*s*.6); ctx.closePath(); ctx.fill(); ctx.restore(); }
+
+  function draw(){
+    drawRink();
+    const showZ=$('zones').checked, tips=$('tips').checked;
+    if(G.bc || G.bcShow>0){ if(showZ||tips){ box(0,LANE.y0,200,LANE.y1,'#15202b'); box(SLOT.x0,SLOT.y0,SLOT.x1,SLOT.y1,'#1a9e5c'); } }
+    else if(G.zone && (showZ || (tips && G.wrongT>2))){ G.zone.draw(); if(G.wrongT>2) drawArrow(her,G.zone.ideal,'#15202b',2.2); }
+    // offside reminder: we have the puck but it isn't in their zone yet — glow their blue line
+    if(possession()===0 && puck.x<=125 && puck.holder!==her){ ctx.save(); ctx.strokeStyle='#1f6fd0'; ctx.globalAlpha=.35+.25*Math.sin(performance.now()/180); ctx.lineWidth=S*2.2; ctx.beginPath(); ctx.moveTo(X(125),Y(0)); ctx.lineTo(X(125),Y(H)); ctx.stroke(); ctx.restore(); }
+    // pass targets hint when she has the puck: light rings on teammates
+    if(puck.holder===her){ team(0).forEach(m=>{ if(m===her) return; ctx.save(); ctx.strokeStyle='#1a9e5c'; ctx.lineWidth=2; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.arc(X(m.x),Y(m.y),8.5*S,0,7); ctx.stroke(); ctx.restore(); }); ctx.save(); ctx.strokeStyle='#ffd400'; ctx.lineWidth=3; ctx.strokeRect(X(170),Y(28),26*S,29*S); ctx.restore(); }
+    team(1).forEach(o=>drawPlayer(o,'#c6cfd9',o.role[0]==='D'?'D':'X',{ink:'#4a5561',stroke:'#8c98a6',r:5}));
+    drawPlayer(goalie(1),'#8c98a6','G',{r:4.4}); drawPlayer(goalie(0),'#23395b','G',{r:4.4});
+    team(0).forEach(p=>{ const isD=p.role[0]==='D'; drawPlayer(p, isD?'#23395b':'#e8641b', isD?'D':(p===her?'C':'W'), {ring:p===her}); });
+    drawPuck();
+    if(G.fx){ const f=G.fx; ctx.save(); ctx.strokeStyle='#ffd400'; ctx.lineWidth=4; ctx.globalAlpha=f.t/.35; ctx.beginPath(); ctx.arc(X(f.x),Y(f.y),(8+ (1-f.t/.35)*10)*S,0,7); ctx.stroke(); ctx.restore(); f.t-=1/60; if(f.t<=0) G.fx=null; }
+    // battle target ring on the opponent carrier when she's close enough
+    if(puck.holder && puck.holder.team===1 && dist(her,puck.holder)<9){ const K=puck.holder; ctx.save(); ctx.strokeStyle='#d7263d'; ctx.lineWidth=2.5; ctx.setLineDash([3,3]); ctx.beginPath(); ctx.arc(X(K.x),Y(K.y),8.5*S,0,7); ctx.stroke(); ctx.restore(); }
+    if(G.bc && G.bc.path.length>1){ ctx.save(); ctx.lineWidth=3; ctx.lineCap='round'; const pth=G.bc.path; for(let i=Math.max(1,pth.length-90);i<pth.length;i++){ const a=pth[i-1],b=pth[i]; ctx.strokeStyle=(b.y>=LANE.y0&&b.y<=LANE.y1)?'#1a9e5c':'#d7263d'; ctx.beginPath(); ctx.moveTo(X(a.x),Y(a.y)); ctx.lineTo(X(b.x),Y(b.y)); ctx.stroke(); } ctx.restore(); }
+  }
+
+  // ---------- loop ----------
+  let last=performance.now(), sayT=0;
+  function say(txt,cls,secs){ banner.textContent=txt; banner.className='banner show '+(cls||''); sayT=secs||1.5; }
+  function hud(){ $('gUs').textContent=G.gUs; $('gThem').textContent=G.gThem; $('cp').textContent=G.cp; $('bc').textContent=G.bcs; const m=Math.floor(Math.max(0,G.clock)/60), s=Math.floor(Math.max(0,G.clock)%60); $('clock').textContent=`${m}:${s<10?'0':''}${s}`; }
+  function loop(now){
+    let real=Math.min(.05,(now-last)/1000); last=now;
+    const dt = G.paused ? 0 : real*parseFloat($('speed').value);
+    if(sayT>0 && !G.paused){ sayT-=real; if(sayT<=0) banner.className='banner'; }
+    if(G.tipT>0 && !G.paused){ G.tipT-=real; if(G.tipT<=0){ coachEl.textContent=''; } }
+    if(G.bcShow>0) G.bcShow-=dt;
+    if(dt>0 && G.phase!=='idle' && G.phase!=='over'){
+      G.t+=dt;
+      if(G.phase==='faceoff'){ G.faceoffT-=dt; if(G.faceoffT<=0) dropPuck(); }
+      else if(G.phase==='goal'){ G.freeze-=dt; if(G.freeze<=0) faceoff(); }
+      else if(G.phase==='whistle'){ G.freeze-=dt; if(G.freeze<=0) faceoff(G.nextFO.x,G.nextFO.y); }
+      else if(G.phase==='play'){
+        G.clock-=real; if(G.clock<=0){ G.clock=0; endGame(); }
+        else {
+          targetsFor(0); targetsFor(1);
+          if(puck.holder && !puck.holder.user) carrierAI(puck.holder,dt);
+          stepPlayers(dt); stepPuck(dt); if(G.phase==='play'){ stepSteals(dt); checkOffside(); coach(dt); }
+        }
+        hud();
+      }
+    }
+    draw(); requestAnimationFrame(loop);
+  }
+  function endGame(){
+    G.phase='over'; beep('horn'); $('pauseBtn').disabled=true; setPause(false);
+    // grade = share of the time she was in the right spot (speed-independent), plus a little for backchecks
+    const pct = G.zoneT>3 ? Math.round(100*G.goodT/G.zoneT) : 0;
+    const adj = Math.min(100, pct + 3*G.bcs);
+    const grade = adj>=75?'A':adj>=60?'B':adj>=45?'C':adj>=30?'D':'E';
+    const note = {A:'Coach\'s pick. You read the puck like a pro — try a faster speed.',B:'Really good reads. A few more F3 moments and that\'s an A.',C:'Getting it. Keep asking "who\'s closest?" before you move.',D:'Lots of chasing. Farthest from the puck? Don\'t chase — be the safety.',E:'Every time they get the puck: stop, look, ask who\'s closest, then move.'}[grade];
+    $('endLine').textContent=grade;
+    $('endTitle').textContent = (G.gUs>G.gThem?'We win ':G.gUs<G.gThem?'They got us ':'Tie game ')+`${G.gUs}–${G.gThem}`;
+    $('endMsg').textContent=`Right spot ${pct}% of the time · ${G.bcs} backcheck${G.bcs===1?'':'s'} · ${G.cp} coach points. ${note}`;
+    $('endOv').hidden=false;
+  }
+  function setPause(on){ if(G.phase==='idle'||G.phase==='over') on=false; G.paused=on; $('pauseOv').hidden=!on; $('pauseBtn').textContent=on?'▶ Resume':'❚❚ Pause'; }
+  function newGame(){ G.clock=PERIOD; G.gUs=G.gThem=G.cp=G.bcs=0; G.zoneT=0; G.goodT=0; G.t=0; G.lastPossTeam=null; G.tipZone=null; coachEl.textContent=''; $('startOv').hidden=true; $('endOv').hidden=true; $('pauseBtn').disabled=false; setPause(false); hud(); faceoff(); }
+
+  // ---------- input ----------
+  const stage=$('stage');
+  function toRink(ev){ const r=cv.getBoundingClientRect(); return {x:((ev.clientX-r.left)/r.width*cv.width-ox)/S, y:((ev.clientY-r.top)/r.height*cv.height-oy)/S}; }
+  stage.addEventListener('pointermove',ev=>{ G.mouse=toRink(ev); });
+  stage.addEventListener('pointerleave',()=>{ G.mouse=null; });
+  stage.addEventListener('pointerdown',ev=>{
+    const m=toRink(ev); G.mouse=m; if(G.paused||G.phase!=='play') return;
+    if(puck.holder===her){
+      if(m.x>170 && m.y>28 && m.y<57){ shoot(her, clamp(m.y,NET.y0+1,NET.y1-1)); say('SHOT!','',.6); }
+      else { const R=team(0).filter(p=>p!==her).sort((a,b)=>dist(a,m)-dist(b,m))[0]; pass(her,R); }
+    } else if(puck.holder && puck.holder.team===1 && dist(m,puck.holder)<9){
+      battle(puck.holder);
+    }
+  });
+  $('pauseBtn').addEventListener('click',()=>setPause(!G.paused));
+  document.addEventListener('keydown',ev=>{ if(ev.target.tagName==='INPUT'||ev.target.tagName==='BUTTON') return; if(ev.key===' '||ev.key.toLowerCase()==='p'){ ev.preventDefault(); if(!$('pauseBtn').disabled) setPause(!G.paused); } });
+  $('startBtn').addEventListener('click',()=>{ beep('tick'); newGame(); });
+  $('againBtn').addEventListener('click',()=>{ beep('tick'); newGame(); });
+  $('speed').addEventListener('input',()=>{ $('speedV').textContent=parseFloat($('speed').value).toFixed(1)+'×'; });
+
+  faceoff(); G.phase='idle'; hud(); requestAnimationFrame(loop);
+})();
+</script>
+
+</body>
+</html>
