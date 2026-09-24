@@ -44,6 +44,10 @@
   <p class="lede">How to design a play, try it the way the kids will, and share it with the team. About ten minutes the first time, and a few minutes after that.</p>
   <a class="cta" href="../designer/">Open the Play Designer →</a>
 
+  <h2>Watch it first (35 seconds)</h2>
+  <p>A quick run-through of designing a two-step play, from picking a setup to copying the share link. Drag the slider to jump to any part.</p>
+  <div id="demo"></div>
+
   <h2><span class="n">1</span>Get into coach mode</h2>
   <p>Open the link Janaka sent you (it ends in <code>?coach=…</code>), or press <b>Coach login</b> at the bottom of the home page and type the coach code. You only do this once per device.</p>
   <p>You'll know it worked when you see the red <span class="btnlike red">✎ Feedback</span> and <span class="btnlike">Coach ✕</span> buttons in the bottom-left corner, and a <b>Coach preview</b> section on the home page.</p>
@@ -59,22 +63,6 @@
     <li><b>Optional:</b> open <i>Player jobs</i> and write one sentence for each position. Kids see the job for the position they pick. For defensive plays, tick <i>Show the house &amp; shot lanes</i>.</li>
   </ol>
 
-  <figure>
-    <svg viewBox="0 0 400 170" role="img" aria-label="Example step: faded C at the faceoff dot with an arrow to C's new spot">
-      <rect x="6" y="6" width="388" height="158" rx="40" fill="#e9f1f8" stroke="#9fb0c2" stroke-width="2"/>
-      <line x1="30" y1="6" x2="30" y2="164" stroke="#d7263d" stroke-width="2"/>
-      <line x1="230" y1="6" x2="230" y2="164" stroke="#1f6fd0" stroke-width="5"/>
-      <circle cx="90" cy="50" r="38" fill="none" stroke="#d7263d" stroke-width="2"/>
-      <rect x="20" y="75" width="10" height="20" fill="#15202b"/>
-      <circle cx="84" cy="50" r="12" fill="#e8641b" opacity=".3"/><text x="84" y="55" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-weight="800" font-size="13" fill="#fff" opacity=".8">C</text>
-      <line x1="97" y1="56" x2="176" y2="92" stroke="#15202b" stroke-width="2" stroke-dasharray="6 5"/>
-      <polygon points="186,97 172,97 178,86" fill="#15202b"/>
-      <circle cx="196" cy="100" r="12" fill="#e8641b" stroke="#fff" stroke-width="2"/><text x="196" y="105" text-anchor="middle" font-family="Barlow Condensed,sans-serif" font-weight="800" font-size="13" fill="#fff">C</text>
-      <text x="84" y="28" text-anchor="middle" font-family="Barlow,sans-serif" font-size="12" fill="#5b6673">where C was</text>
-      <text x="196" y="130" text-anchor="middle" font-family="Barlow,sans-serif" font-size="12" fill="#5b6673">drag C here</text>
-    </svg>
-    <figcaption>Each step: drag players to where they end up. The faded player and arrow show where they started.</figcaption>
-  </figure>
 
   <div class="tip"><b>Curves:</b> players move in straight lines between steps. To go behind the net or around a player, add an extra step at the turn.</div>
   <div class="tip"><b>Moving the puck:</b> drag the puck to the player who receives the pass. Put it just in front of them, not on top, so it's easy to grab next time.</div>
@@ -118,6 +106,8 @@
 
   <p style="margin-top:28px"><a class="cta" href="../designer/">Open the Play Designer →</a></p>
 </main>
+<script src="../designer-demo.js"></script>
+<script>IceTDesignerDemo.mount(document.getElementById("demo"));</script>
 <script src="../coach.js"></script>
 </body>
 </html>

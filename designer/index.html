@@ -110,6 +110,10 @@
   details.box{border:1px solid var(--line);border-radius:10px;background:var(--panel);padding:6px 10px;font-size:14px}
   details.box summary{cursor:pointer;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:15px;text-transform:uppercase;letter-spacing:.4px}
   details.box ol{margin:6px 0 4px;padding-left:18px;color:var(--muted);display:grid;gap:3px}
+  .demo-ov{position:fixed;inset:0;z-index:9996;background:rgba(10,15,20,.7);display:flex;align-items:center;justify-content:center;padding:14px}
+  .demo-ov[hidden]{display:none}
+  .demo-ov .in{width:min(960px,100%);max-height:100%;overflow:auto}
+  .demo-ov .top{display:flex;justify-content:space-between;align-items:center;color:#fff;margin-bottom:8px;font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:20px;text-transform:uppercase}
 </style>
 </head>
 <body>
@@ -123,6 +127,7 @@
       <a class="home" href="../">← IceT home</a>
       <h1>Play Designer</h1>
       <p class="hint">Coach tool. Drag players and the puck to where they are at the <b>end</b> of each step. Our net is on the left. New here? <a href="../coach-guide/" style="color:var(--blue)">Read the coach guide</a>.</p>
+      <button class="btn" id="demoBtn" style="margin-top:6px;width:100%">▶ Watch the 35-second demo</button>
     </div>
     <div class="field"><div class="k">Play name</div><input type="text" id="name" maxlength="60" placeholder="e.g. D-zone faceoff loss"></div>
     <div><div class="k">Start from</div><div class="chips" id="tpl"></div></div>
@@ -368,6 +373,17 @@
   sync(); requestAnimationFrame(loop);
 })();
 </script>
+<div class="demo-ov" id="demoOv" hidden><div class="in"><div class="top"><span>How to design a play</span><button class="btn" id="demoClose">Close ✕</button></div><div id="demoBox"></div></div></div>
+<script src="../designer-demo.js"></script>
+<script>(function(){ var ov=document.getElementById('demoOv'), w=null;
+  function open(){ ov.hidden=false; if(!w) w=IceTDesignerDemo.mount(document.getElementById('demoBox')); else w.restart(); }
+  function close(){ ov.hidden=true; if(w) w.pause(); try{ localStorage.setItem('icet-demo-seen','1'); }catch(e){} }
+  document.getElementById('demoBtn').onclick=open; document.getElementById('demoClose').onclick=close;
+  ov.addEventListener('click',function(e){ if(e.target===ov) close(); });
+  document.addEventListener('keydown',function(e){ if(e.key==='Escape'&&!ov.hidden) close(); });
+  var seen=null; try{ seen=localStorage.getItem('icet-demo-seen'); }catch(e){}
+  var coach=null; try{ coach=localStorage.getItem('icet-coach'); }catch(e){} if(!seen && coach==='1') open();
+})();</script>
 <script src="../coach.js"></script>
 </body>
 </html>
