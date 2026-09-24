@@ -212,21 +212,21 @@
         {t:4.4, p:{puck:[85,26],C:[82,26],LW:[68,8],LD:[52,10],RW:[92,46],RD:[46,44],OD1:[72,12],OD2:[92,44],OC:[60,30],ORW:[46,16],OLW:[44,48]}}
       ]},
     { id:'loose', name:'Loose puck',
-      caps:['Set. The goal is to win it away from our net: toward the corner or right to LW.',
+      caps:['Set. The win goes back — away from the front of our net.',
             'Drop! The puck isn\'t fully won. C ties up their center. RW flashes in behind C to grab it.',
-            'RW moves it to LW on the strong-side wall. C lets go and heads up the middle. LD slides to the wall.',
-            'LW chips it to C in the middle. LD follows up close to the wall.',
+            'RW moves it to LW on the strong-side wall. C lets go and heads up the middle.',
+            'LW chips it to C in the middle.',
             'C carries it out of the zone!'],
       jobs:{ C:'Tie up their center so he can\'t get the loose puck, then go up the middle.',
              LW:'Get up the strong-side wall and be open for RW\'s pass, then chip it to C.',
              RW:'Flash in behind C, grab the loose puck, and move it to LW.',
-             LD:'Stay ready behind the draw in case it comes to you, then follow up close to the wall.',
+             LD:'Stay ready behind the draw in case it comes to you, then follow up.',
              RD:'Take their LW in front of our net until we have the puck.' },
       kf:[
-        {t:0.9, p:{puck:[24,25],C:[29.5,22.5],OC:[34.5,22],RW:[25,28],LD:[17,24],RD:[19,40],OLW:[23,40],LW:[38,6],ORW:[30,12]}},
-        {t:1.9, p:{puck:[41,6],LW:[40,6],RW:[28,34],C:[46,26],OC:[36,26],ORW:[28,20],LD:[22,14],RD:[19,41],OLW:[24,42],OD1:[62,10]}},
-        {t:3.0, p:{puck:[64,30],C:[62,30],LW:[54,7],RW:[50,50],LD:[36,11],RD:[26,42],OD1:[58,12],OC:[46,30],ORW:[38,16],OLW:[32,46],OD2:[70,48]}},
-        {t:4.2, p:{puck:[86,32],C:[84,32],RW:[76,56],LW:[74,10],LD:[54,12],RD:[46,46],OD1:[72,16],OD2:[92,46],OC:[64,34],ORW:[52,18],OLW:[48,50]}}
+        {t:0.9, p:{puck:[23,30],C:[29.5,22.5],OC:[34.5,22],RW:[24,33],LD:[17,27],RD:[19,40],OLW:[23,40],LW:[38,6],ORW:[30,12]}},
+        {t:1.9, p:{puck:[41,6],LW:[40,6],RW:[28,36],C:[46,26],OC:[36,26],ORW:[28,20],LD:[20,27],RD:[19,41],OLW:[24,42],OD1:[62,10]}},
+        {t:3.0, p:{puck:[64,30],C:[62,30],LW:[54,7],RW:[50,50],LD:[32,28],RD:[26,42],OD1:[58,12],OC:[46,30],ORW:[38,14],OLW:[32,46],OD2:[70,48]}},
+        {t:4.2, p:{puck:[86,32],C:[84,32],RW:[76,56],LW:[74,10],LD:[52,30],RD:[46,46],OD1:[72,14],OD2:[92,46],OC:[64,34],ORW:[52,16],OLW:[48,50]}}
       ]}
   ];
   VARS.forEach(v=>{ const f=[{t:0,p:{...SETUP}}]; v.kf.forEach(k=>{ f.push({t:k.t,via:k.via||{},p:{...f[f.length-1].p,...k.p}}); }); v.frames=f; });
