@@ -12,7 +12,9 @@
   var FORM={ action:'', page:'', screen:'', text:'', name:'' };
   // Google Form + published Sheet for coach-posted plays (shown on the home page for everyone).
   // action: form's formResponse URL · name/link/coach: entry.NNN ids · csv: Sheet "Publish to web" CSV link.
-  var PLAYS={ action:'', name:'', link:'', coach:'', csv:'' };
+  var PLAYS={ action:'https://docs.google.com/forms/d/e/1FAIpQLSfLxBULlbPqWsRguZXEbtS7F-W-ixbJh9zzB8d4YPSDFHcdxQ/formResponse',
+    name:'entry.840796790', link:'entry.741823167', coach:'entry.1252256420',
+    csv:'https://docs.google.com/spreadsheets/d/e/2PACX-1vTS0mDaGZk1iUhH-y5bHeLQOHm7wvkmb5yKeRrglBFFSrQYV_zQoPytEtTfjwwwcawND20cqJzNunR2/pub?output=csv' };
   var TO=['jayalalj','gmail.com'].join('@');               // where feedback goes
   function h(str){ // cyrb53, returned in base36 — obscures the code, not encryption
     var h1=0xdeadbeef, h2=0x41c6ce57;
@@ -104,7 +106,10 @@
     return fetch(PLAYS.csv).then(function(r){ return r.text(); }).then(function(t){
       var rows=parseCSV(t); if(rows.length<2) return [];
       var hd=rows[0].map(function(h){ return h.toLowerCase(); }), col=function(w){ for(var i=0;i<hd.length;i++) if(hd[i].indexOf(w)>-1) return i; return -1; };
-      var cT=col('timestamp'), cL=col('link'), cN=col('play'), cC=col('coach'), seen={}, out=[];
+      var cT=col('timestamp'), cL=col('link'), cC=col('coach'), seen={}, out=[], cN=-1;
+      if(cL<0) rows.slice(1).some(function(r){ for(var i=0;i<r.length;i++) if(r[i].indexOf('play/#p=')>-1){ cL=i; return true; } });
+      for(var j=0;j<hd.length;j++){ if(j!==cL&&j!==cC&&j!==cT&&(hd[j].indexOf('name')>-1||hd[j].indexOf('play')>-1)){ cN=j; break; } }
+      if(cN<0) for(var k2=0;k2<hd.length;k2++){ if(k2!==cL&&k2!==cC&&k2!==cT){ cN=k2; break; } }
       rows.slice(1).forEach(function(r){ var link=(r[cL]||'').trim(), i=link.indexOf('play/#p='); if(i<0) return;
         out.push({ name:(r[cN]||'Coach play').trim(), link:link.slice(i), coach:cC>-1?(r[cC]||'').trim():'', time:cT>-1?r[cT]:'' }); });
       out.reverse(); return out.filter(function(p){ var k=p.name.toLowerCase(); if(seen[k]) return false; seen[k]=1; return true; }); // newest first; re-posting a name replaces it
