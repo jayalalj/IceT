@@ -12,6 +12,7 @@ Practice plays and hockey-IQ games for the IceT team. Everything is plain HTML, 
 | `whos-f1/` | Who's F1? F1/F2/F3 positioning and backcheck game |
 | `scrimmage/` | Center Scrimmage: live 5-on-5 with coach points |
 | `designer/` | Play Designer (coach-only): drag players, add steps, test, share a link |
+| `coach-guide/` | Coach Guide (coach-only): how to design, test, share and publish plays |
 | `play/` | Plays any shared designer link as Watch / Play it with grading |
 | `playbook/` | Center Playbook: animated F1/F2/F3, faceoff and backcheck diagrams |
 
