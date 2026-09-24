@@ -28,11 +28,26 @@
   .how b{color:var(--ink)}
   footer{max-width:1040px;margin:0 auto;padding:0 20px 30px;color:var(--muted);font-size:13px}
   @media (prefers-reduced-motion: reduce){ .card{transition:none} }
+  html:not(.coach) [data-coach-only]{display:none!important}
+  .coachzone{border:2px dashed #d7263d;border-radius:16px;padding:14px 16px 4px;margin-bottom:28px;background:rgba(215,38,61,.04)}
+  .coachzone h2{color:#d7263d}
+  .empty{color:var(--muted);font-size:15px;padding:4px 0 14px}
+  .tag.draft{color:#fff;background:#d7263d}
+  footer a{color:var(--blue);cursor:pointer}
 </style>
 </head>
 <body>
 
 <main>
+  <section class="coachzone" data-coach-only>
+    <h2>Coach preview</h2>
+    <p class="sub">Only visible in coach mode. New plays show up here first. When the coaches are happy with one, it moves up to Team plays for everyone. Use the red <b>Feedback</b> button on any page to send notes to Janaka.</p>
+    <div class="grid" id="drafts">
+      <!-- DRAFT CARDS: copy a card here with <span class="tag draft">Draft</span> -->
+    </div>
+    <p class="empty" id="noDrafts">No drafts waiting for review right now.</p>
+  </section>
+
   <h2>Team plays</h2>
   <p class="sub">From Coach's practice plans. Pick your position (C, LW, RW, LD or RD) and get graded at every step.</p>
   <div class="grid">
@@ -54,7 +69,9 @@
     <b>How to play:</b> on a laptop, move the mouse to skate. On a phone or tablet, turn it sideways and tap the ice where you want to go. Use <b>Pause</b> any time to talk it through, and slow the speed down while learning.
   </div>
 </main>
-<footer>IceT · Nothing is collected; scores stay on your own device.</footer>
+<footer>IceT · Nothing is collected; scores stay on your own device. · <a data-coach-login href="#">Coach login</a></footer>
 
+<script>(function(){var d=document.getElementById("drafts"),n=document.getElementById("noDrafts");if(d&&n&&d.querySelector(".card"))n.hidden=true;})();</script>
+<script src="coach.js"></script>
 </body>
 </html>
