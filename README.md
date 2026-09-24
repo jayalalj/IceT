@@ -53,3 +53,7 @@ The coach code is stored as a hash in `coach.js` (`CODE_HASH`). To change the co
 `designer/` is coach-only (a draft page). Coaches pick a starting setup, drag players and the puck for each step, and write one caption per step. The whole play is packed into the link `play/#p=...`, so no server or database is needed. **Test it** opens that link. **Copy share link** gives a link to send around. **Save** keeps plays in that browser only.
 
 To make a coach's play permanent on the home page, add a card linking to its `play/#p=...` link: in Coach preview first, then Team plays once it's approved.
+
+## Coach-posted plays
+
+**Post to team page** in the designer sends the play name, link and coach name to a Google Form (`PLAYS` in `coach.js`). The form's response Sheet is published to the web as CSV (`PLAYS.csv`). The home page reads it and adds a card under **Team plays** for each play, newest first. Posting a play again under the same name replaces the old card. Delete a row in the Sheet to remove a play. Google refreshes the published CSV every few minutes.

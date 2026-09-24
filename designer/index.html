@@ -146,6 +146,12 @@
       <button class="btn primary big" id="test">Test it</button>
       <div class="row"><button class="btn" id="copy">Copy share link</button><button class="btn" id="save">Save</button><button class="btn" id="newBtn">New</button></div>
     </div>
+    <button class="btn primary" id="post" style="width:100%">📣 Post to team page</button>
+    <div class="card-ish" id="postBox" hidden style="border:1px solid var(--line);border-radius:10px;padding:8px 10px;background:var(--panel)">
+      <div class="k" style="margin-bottom:4px">Post "<span id="postName"></span>" for everyone</div>
+      <input type="text" id="postCoach" maxlength="40" placeholder="Your name (shown on the card)" style="font:inherit;font-size:14px;width:100%;border:1px solid var(--line);border-radius:7px;padding:6px 8px;background:var(--panel);color:var(--ink)">
+      <div class="row2" style="margin-top:6px"><button class="btn" id="postCancel">Cancel</button><button class="btn primary" id="postGo">Post it</button></div>
+    </div>
     <div class="note" id="note"></div>
     <div><div class="k">My saved plays (this device)</div>
       <div class="lib"><select id="lib"></select><button class="btn" id="load">Open</button><button class="btn" id="del">Delete</button></div>
@@ -247,6 +253,16 @@
   $('save').onclick=()=>{ const L=lib(); const id=D._id||('p'+Date.now()); D._id=id; L[id]={saved:Date.now(),play:clone(D)}; setLib(L); sync(); say('Saved on this device as "'+(D.name||'Untitled')+'".'); };
   $('load').onclick=()=>{ const id=$('lib').value, L=lib(); if(!id||!L[id]) return; D=clone(L[id].play); cur=0; sync(); say('Opened "'+(D.name||'Untitled')+'".'); };
   $('del').onclick=()=>{ const id=$('lib').value, L=lib(); if(!id||!L[id]) return; if(!window.confirm('Delete "'+(L[id].play.name||'Untitled')+'" from this device?')) return; delete L[id]; setLib(L); sync(); say('Deleted.'); };
+  $('post').onclick=()=>{ if(!ready()) return; if(!(D.name||'').trim()){ say('Give the play a name first. That\'s the title on the team page.'); $('name').focus(); return; }
+    $('postName').textContent=D.name.trim(); try{ $('postCoach').value=localStorage.getItem('icet-name')||''; }catch(e){} $('postBox').hidden=false; $('postCoach').focus(); };
+  $('postCancel').onclick=()=>{ $('postBox').hidden=true; };
+  $('postGo').onclick=()=>{
+    const coach=$('postCoach').value.trim(); try{ localStorage.setItem('icet-name',coach); }catch(e){}
+    if(!window.IceTPlaysReady||!window.IceTPlaysReady()){ $('postBox').hidden=true; say('Posting isn\'t switched on yet. Use Copy share link and send it to Janaka for now.'); return; }
+    const b=$('postGo'); b.disabled=true; b.textContent='Posting…';
+    window.IceTPostPlay({name:D.name.trim(), link:link(), coach}).then(()=>{ $('postBox').hidden=true; say('Posted! "'+D.name.trim()+'" shows under Team plays on the home page within about 5 minutes.'); },
+      ()=>{ say('Couldn\'t post (no internet?). Try again, or use Copy share link.'); }).finally(()=>{ b.disabled=false; b.textContent='Post it'; });
+  };
   $('preview').onclick=()=>{ if(!ready()) return; prevT=0; say(''); };
 
   // ---------- drawing ----------

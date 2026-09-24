@@ -10,6 +10,9 @@
   var TEAM_GATE=false;                                     // TEMPORARILY OFF: set true to require the team code again (and remove /*TEAM_GATE_OFF*/true|| in each page's <head>)
   // Google Form for coach feedback. Fill these in from the form's pre-filled link; leave action '' to fall back to email.
   var FORM={ action:'', page:'', screen:'', text:'', name:'' };
+  // Google Form + published Sheet for coach-posted plays (shown on the home page for everyone).
+  // action: form's formResponse URL · name/link/coach: entry.NNN ids · csv: Sheet "Publish to web" CSV link.
+  var PLAYS={ action:'', name:'', link:'', coach:'', csv:'' };
   var TO=['jayalalj','gmail.com'].join('@');               // where feedback goes
   function h(str){ // cyrb53, returned in base36 — obscures the code, not encryption
     var h1=0xdeadbeef, h2=0x41c6ce57;
@@ -86,6 +89,27 @@
     b.querySelector('#icet-cancel').onclick=closeModal;
   }
   window.IceTCoachLogin=login;
+  window.IceTPlaysReady=function(){ return !!(PLAYS.action&&PLAYS.name&&PLAYS.link); };
+  window.IceTPostPlay=function(o){
+    if(!window.IceTPlaysReady()) return Promise.reject(new Error('not-configured'));
+    var fd=new URLSearchParams(); fd.append(PLAYS.name,o.name); fd.append(PLAYS.link,o.link); if(PLAYS.coach) fd.append(PLAYS.coach,o.coach||'');
+    return fetch(PLAYS.action,{method:'POST',mode:'no-cors',body:fd});
+  };
+  function parseCSV(t){ var rows=[],row=[],f='',q=false; for(var i=0;i<t.length;i++){ var ch=t[i];
+      if(q){ if(ch==='"'){ if(t[i+1]==='"'){ f+='"'; i++; } else q=false; } else f+=ch; }
+      else if(ch==='"') q=true; else if(ch===','){ row.push(f); f=''; } else if(ch==='\n'||ch==='\r'){ if(ch==='\r'&&t[i+1]==='\n') i++; row.push(f); rows.push(row); row=[]; f=''; } else f+=ch; }
+    if(f!==''||row.length){ row.push(f); rows.push(row); } return rows; }
+  window.IceTLoadPlays=function(){
+    if(!PLAYS.csv) return Promise.resolve([]);
+    return fetch(PLAYS.csv).then(function(r){ return r.text(); }).then(function(t){
+      var rows=parseCSV(t); if(rows.length<2) return [];
+      var hd=rows[0].map(function(h){ return h.toLowerCase(); }), col=function(w){ for(var i=0;i<hd.length;i++) if(hd[i].indexOf(w)>-1) return i; return -1; };
+      var cT=col('timestamp'), cL=col('link'), cN=col('play'), cC=col('coach'), seen={}, out=[];
+      rows.slice(1).forEach(function(r){ var link=(r[cL]||'').trim(), i=link.indexOf('play/#p='); if(i<0) return;
+        out.push({ name:(r[cN]||'Coach play').trim(), link:link.slice(i), coach:cC>-1?(r[cC]||'').trim():'', time:cT>-1?r[cT]:'' }); });
+      out.reverse(); return out.filter(function(p){ var k=p.name.toLowerCase(); if(seen[k]) return false; seen[k]=1; return true; }); // newest first; re-posting a name replaces it
+    });
+  };
 
   function context(){
     var bits=[]; document.querySelectorAll('.chip[aria-pressed="true"]').forEach(function(c){ bits.push(c.textContent.trim()); });

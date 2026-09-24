@@ -65,7 +65,7 @@
 
   <h2>Team plays</h2>
   <p class="sub">From Coach's practice plans. Pick your position (C, LW, RW, LD or RD) and get graded at every step.</p>
-  <div class="grid">
+  <div class="grid" id="teamGrid">
     <a class="card" href="faceoff/">
       <span class="tag team">D-zone</span>
       <h3>D-Zone Faceoff Win</h3>
@@ -88,5 +88,14 @@
 
 <script>(function(){var d=document.getElementById("drafts"),n=document.getElementById("noDrafts");if(d&&n&&d.querySelector(".card"))n.hidden=true;})();</script>
 <script src="coach.js"></script>
+<script>
+(function(){ if(!window.IceTLoadPlays) return; var g=document.getElementById('teamGrid');
+  function esc(s){ return String(s).replace(/[&<>"]/g,function(c){ return {'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]; }); }
+  IceTLoadPlays().then(function(list){ list.forEach(function(p){ var a=document.createElement('a'); a.className='card'; a.href=p.link;
+    var d=p.time?new Date(p.time):null, when=d&&!isNaN(d)?d.toLocaleDateString(undefined,{month:'short',day:'numeric'}):'';
+    a.innerHTML='<span class="tag team">Coach play</span><h3>'+esc(p.name)+'</h3><p>'+(p.coach?'Posted by '+esc(p.coach):'Posted by the coaches')+(when?' · '+esc(when):'')+'</p><span class="go">Open →</span>';
+    g.appendChild(a); }); }).catch(function(){});
+})();
+</script>
 </body>
 </html>
