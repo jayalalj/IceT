@@ -7,6 +7,7 @@
   'use strict';
   var KEY='icet-coach', CODE_HASH='1769rrpbte3';          // hash of the shared coach code
   var TEAM_KEY='icet-team', TEAM_HASH='co5qtabq0p';        // hash of the team code (whole site)
+  var TEAM_GATE=false;                                     // TEMPORARILY OFF: set true to require the team code again (and remove /*TEAM_GATE_OFF*/true|| in each page's <head>)
   // Google Form for coach feedback. Fill these in from the form's pre-filled link; leave action '' to fall back to email.
   var FORM={ action:'', page:'', screen:'', text:'', name:'' };
   var TO=['jayalalj','gmail.com'].join('@');               // where feedback goes
@@ -26,7 +27,7 @@
   function isCoach(){ return root.classList.contains('coach'); }
   function isTeam(){ return root.classList.contains('team'); }
   function apply(on){ root.classList.toggle('coach',!!on); set(KEY,on?'1':null); if(on) team(true); render(); }
-  function team(on){ root.classList.toggle('team',!!on); set(TEAM_KEY,on?'1':null); render(); }
+  function team(on){ root.classList.toggle('team',!!on||!TEAM_GATE); set(TEAM_KEY,on?'1':null); render(); }
 
   // unlock from link: ?coach=CODE
   try{
@@ -36,7 +37,7 @@
     if(q!==null||t!==null) history.replaceState(null,'',u.pathname+(u.search||'')+u.hash);
   }catch(e){}
   if(get(KEY)==='1'){ root.classList.add('coach'); set(TEAM_KEY,'1'); }
-  root.classList.toggle('team', get(TEAM_KEY)==='1');
+  root.classList.toggle('team', !TEAM_GATE || get(TEAM_KEY)==='1');
 
   // ---------- styles ----------
   var css=''+
