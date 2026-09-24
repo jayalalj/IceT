@@ -12,13 +12,13 @@
   *{box-sizing:border-box}
   body{margin:0;background:var(--bg);color:var(--ink);font-family:Barlow,"Segoe UI",Helvetica,Arial,sans-serif;font-size:16px;line-height:1.45}
   a{color:inherit}
-  .hero{background:linear-gradient(160deg,#0d2a57 0%,#123a73 60%,#1f6fd0 140%);color:#fff;position:relative;overflow:hidden}
-  .hero::after{content:"";position:absolute;left:0;right:0;bottom:0;height:6px;background:linear-gradient(90deg,var(--red) 0 33%,#fff 33% 34%,var(--blue) 34% 66%,#fff 66% 67%,var(--red) 67%)}
-  .hero .in{max-width:1040px;margin:0 auto;padding:28px 20px 34px;display:flex;align-items:center;gap:22px}
-  .hero canvas{width:120px;height:120px;flex:none;filter:drop-shadow(0 6px 16px rgba(0,0,0,.35))}
-  .hero h1{font-family:"Barlow Condensed",Impact,sans-serif;font-weight:800;font-size:clamp(40px,7vw,64px);line-height:.95;margin:0;letter-spacing:.5px;text-transform:uppercase}
-  .hero p{margin:8px 0 0;font-size:18px;opacity:.9;max-width:52ch}
-  main{max-width:1040px;margin:0 auto;padding:26px 20px 40px}
+  .hero{color:var(--ink)}
+  .hero .in{max-width:1040px;margin:0 auto;padding:24px 20px 0;display:flex;align-items:center;gap:22px}
+  .hero canvas{width:110px;height:110px;flex:none;filter:drop-shadow(0 4px 10px rgba(13,42,87,.18))}
+  .hero h1{font-family:"Barlow Condensed",Impact,sans-serif;font-weight:800;font-size:clamp(40px,7vw,64px);color:var(--navy);line-height:.95;margin:0;letter-spacing:.5px;text-transform:uppercase}
+  .hero p{margin:8px 0 0;font-size:18px;color:var(--muted);max-width:52ch}
+  main{max-width:1040px;margin:0 auto;padding:22px 20px 40px}
+  @media (prefers-color-scheme: dark){ .hero h1{color:var(--ink)} }
   h2{font-family:"Barlow Condensed",sans-serif;font-weight:800;font-size:24px;text-transform:uppercase;letter-spacing:.5px;margin:6px 0 4px}
   .sub{color:var(--muted);margin:0 0 14px;font-size:15px}
   .grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(290px,1fr));gap:14px;margin-bottom:28px}
