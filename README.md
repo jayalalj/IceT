@@ -11,6 +11,8 @@ Practice plays and hockey-IQ games for the IceT team. Everything is plain HTML, 
 | `puck-retrieval/` | Puck Retrieval & Shot Suppression: breakouts, protecting the house |
 | `whos-f1/` | Who's F1? F1/F2/F3 positioning and backcheck game |
 | `scrimmage/` | Center Scrimmage: live 5-on-5 with coach points |
+| `designer/` | Play Designer (coach-only): drag players, add steps, test, share a link |
+| `play/` | Plays any shared designer link as Watch / Play it with grading |
 | `playbook/` | Center Playbook: animated F1/F2/F3, faceoff and backcheck diagrams |
 
 ## Publishing
@@ -44,3 +46,9 @@ This hides content from casual visitors only. The site is public, so anyone who 
 4. When approved: remove the `icet-draft` meta line, and move the card up to **Team plays**.
 
 The coach code is stored as a hash in `coach.js` (`CODE_HASH`). To change the code, ask for a new hash to be generated.
+
+## Play Designer
+
+`designer/` is coach-only (a draft page). Coaches pick a starting setup, drag players and the puck for each step, and write one caption per step. The whole play is packed into the link `play/#p=...`, so no server or database is needed. **Test it** opens that link. **Copy share link** gives a link to send around. **Save** keeps plays in that browser only.
+
+To make a coach's play permanent on the home page, add a card linking to its `play/#p=...` link: in Coach preview first, then Team plays once it's approved.
