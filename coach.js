@@ -6,6 +6,9 @@
 (function(){
   'use strict';
   var KEY='icet-coach', CODE_HASH='1769rrpbte3';          // hash of the shared coach code
+  var TEAM_KEY='icet-team', TEAM_HASH='co5qtabq0p';        // hash of the team code (whole site)
+  // Google Form for coach feedback. Fill these in from the form's pre-filled link; leave action '' to fall back to email.
+  var FORM={ action:'', page:'', screen:'', text:'', name:'' };
   var TO=['jayalalj','gmail.com'].join('@');               // where feedback goes
   function h(str){ // cyrb53, returned in base36 — obscures the code, not encryption
     var h1=0xdeadbeef, h2=0x41c6ce57;
@@ -16,22 +19,33 @@
   }
   function norm(c){ return String(c||'').trim().toLowerCase(); }
   function ok(c){ return h(norm(c))===CODE_HASH; }
+  function okTeam(c){ var x=h(norm(c)); return x===TEAM_HASH||x===CODE_HASH; }
   function get(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
   function set(k,v){ try{ v==null?localStorage.removeItem(k):localStorage.setItem(k,v); }catch(e){} }
   var root=document.documentElement;
   function isCoach(){ return root.classList.contains('coach'); }
-  function apply(on){ root.classList.toggle('coach',!!on); set(KEY,on?'1':null); render(); }
+  function isTeam(){ return root.classList.contains('team'); }
+  function apply(on){ root.classList.toggle('coach',!!on); set(KEY,on?'1':null); if(on) team(true); render(); }
+  function team(on){ root.classList.toggle('team',!!on); set(TEAM_KEY,on?'1':null); render(); }
 
   // unlock from link: ?coach=CODE
   try{
-    var u=new URL(location.href), q=u.searchParams.get('coach');
-    if(q!==null){ if(ok(q)) set(KEY,'1'); u.searchParams.delete('coach'); history.replaceState(null,'',u.pathname+(u.search||'')+u.hash); }
+    var u=new URL(location.href), q=u.searchParams.get('coach'), t=u.searchParams.get('code');
+    if(q!==null){ if(ok(q)){ set(KEY,'1'); set(TEAM_KEY,'1'); } u.searchParams.delete('coach'); }
+    if(t!==null){ if(okTeam(t)) set(TEAM_KEY,'1'); if(ok(t)) set(KEY,'1'); u.searchParams.delete('code'); }
+    if(q!==null||t!==null) history.replaceState(null,'',u.pathname+(u.search||'')+u.hash);
   }catch(e){}
-  if(get(KEY)==='1') root.classList.add('coach');
+  if(get(KEY)==='1'){ root.classList.add('coach'); set(TEAM_KEY,'1'); }
+  root.classList.toggle('team', get(TEAM_KEY)==='1');
 
   // ---------- styles ----------
   var css=''+
   'html:not(.coach) [data-coach-only]{display:none!important}'+
+  'html:not(.team) body>*:not(.icet-gate){visibility:hidden!important}'+
+  '.icet-gate{position:fixed;inset:0;z-index:10000;background:#eef3f8;display:flex;align-items:center;justify-content:center;padding:20px}'+
+  '.icet-gate .icet-box{box-shadow:0 10px 30px rgba(13,42,87,.15)}'+
+  '.icet-box select{width:100%;font:inherit;border:1px solid #c9d3df;border-radius:8px;padding:8px 10px;background:#fff;color:#15202b}'+
+  '.icet-box label{display:block;font-size:13px;color:#5b6673;margin:8px 0 3px}'+
   '.icet-c{font-family:Barlow,"Segoe UI",Helvetica,Arial,sans-serif;font-size:15px;line-height:1.35;color:#15202b}'+
   '.icet-c *{box-sizing:border-box}'+
   '.icet-pill{position:fixed;left:12px;bottom:12px;z-index:9998;display:flex;gap:6px;align-items:center}'+
@@ -81,14 +95,27 @@
     var page=document.title||'IceT page', k='icet-fb:'+location.pathname, ctx=context();
     var b=modal('<h3>Feedback for Janaka</h3><p>What should change on this page? Be as specific as you like: which play, which player, which step.</p>'+
       '<div class="ctx"><b>Page:</b> '+page.replace(/</g,'&lt;')+(ctx?'<br><b>On screen now:</b> '+ctx.replace(/</g,'&lt;'):'')+'</div>'+
-      '<textarea id="icet-text" placeholder="e.g. On Strong-side exit, step 3: LD should be closer to the boards."></textarea>'+
+      (FORM.action&&FORM.name?'<label for="icet-name">Your name</label><input id="icet-name" placeholder="Coach name" value="'+(get('icet-name')||'').replace(/"/g,'&quot;')+'">':'')+
+      '<label for="icet-text">Feedback</label><textarea id="icet-text" placeholder="e.g. On Strong-side exit, step 3: LD should be closer to the boards."></textarea>'+
       '<div class="icet-note" id="icet-note"></div>'+
-      '<div class="icet-row"><button type="button" id="icet-copy">Copy text</button><button type="button" id="icet-cancel">Close</button><button type="button" class="pri" id="icet-send">Send by email</button></div>');
+      '<div class="icet-row"><button type="button" id="icet-copy">Copy text</button><button type="button" id="icet-cancel">Close</button><button type="button" class="pri" id="icet-send">'+(FORM.action?'Send':'Send by email')+'</button></div>');
     var ta=b.querySelector('#icet-text'); ta.value=get(k)||''; ta.focus();
     ta.addEventListener('input',function(){ set(k,ta.value||null); });
     function body(){ return ta.value.trim()+'\n\n---\nPage: '+page+'\nLink: '+location.href.split('?')[0]+(ctx?'\nOn screen: '+ctx:''); }
     b.querySelector('#icet-send').onclick=function(){
       if(!ta.value.trim()){ b.querySelector('#icet-note').textContent='Type your feedback first.'; return; }
+      if(FORM.action){
+        var nm=b.querySelector('#icet-name'), fd=new URLSearchParams();
+        if(nm){ set('icet-name',nm.value.trim()||null); if(FORM.name) fd.append(FORM.name,nm.value.trim()); }
+        if(FORM.page) fd.append(FORM.page,page+' ('+location.href.split('?')[0]+')');
+        if(FORM.screen) fd.append(FORM.screen,ctx);
+        fd.append(FORM.text,ta.value.trim());
+        var btn=this; btn.disabled=true; btn.textContent='Sending…';
+        fetch(FORM.action,{method:'POST',mode:'no-cors',body:fd}).then(function(){
+          set(k,null); ta.value=''; btn.textContent='Sent ✓'; b.querySelector('#icet-note').textContent='Thanks! Janaka has it.'; setTimeout(closeModal,1400);
+        },function(){ btn.disabled=false; btn.textContent='Send'; b.querySelector('#icet-note').textContent='Couldn\'t send (no internet?). Try again, or use Copy text.'; });
+        return;
+      }
       location.href='mailto:'+TO+'?subject='+encodeURIComponent('IceT feedback: '+page)+'&body='+encodeURIComponent(body());
       b.querySelector('#icet-note').textContent='Your email app should open with this filled in. Press Send there. If nothing opened, use Copy text and email it to '+TO+'.';
       set(k,null);
@@ -99,9 +126,18 @@
     b.querySelector('#icet-cancel').onclick=closeModal;
   }
 
-  var pill=null, cover=null;
+  var pill=null, cover=null, gate=null;
   function render(){
     if(!document.body) return;
+    if(!isTeam()){
+      if(!gate){ gate=el('div',{'class':'icet-gate icet-c'});
+        var bx=el('div',{'class':'icet-box'},'<h3>IceT team site</h3><p>Enter the team code to see the practice plays.</p><input type="password" id="icet-team" autocomplete="off" placeholder="Team code"><div class="icet-err" id="icet-terr"></div><div class="icet-row"><button type="button" class="pri" id="icet-tgo">Enter</button></div>');
+        gate.appendChild(bx); document.body.appendChild(gate);
+        var ti=bx.querySelector('#icet-team'); ti.focus();
+        var go=function(){ if(okTeam(ti.value)){ if(ok(ti.value)) apply(true); else team(true); } else { bx.querySelector('#icet-terr').textContent='That code isn\'t right. Ask your coach for the team code.'; ti.select(); } };
+        bx.querySelector('#icet-tgo').onclick=go; ti.addEventListener('keydown',function(e){ if(e.key==='Enter') go(); }); }
+      return;
+    } else if(gate){ gate.remove(); gate=null; }
     // floating coach controls
     if(isCoach()){
       if(!pill){ pill=el('div',{'class':'icet-pill icet-c'},'<button type="button" class="icet-fb">✎ Feedback</button><button type="button" class="icet-out" title="Leave coach mode">Coach ✕</button>');
